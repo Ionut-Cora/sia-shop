@@ -3,8 +3,16 @@ from .models import Product
 
 
 def all_products(request):
-    """Display all products."""
     products = Product.objects.all()
+
+    sort = request.GET.get('sort', 'price')
+
+    if sort == 'rating':
+        products = products.order_by('-rating')
+    elif sort == 'category':
+        products = products.order_by('category__name')
+    else:
+        products = products.order_by('price')
 
     context = {
         'products': products,
