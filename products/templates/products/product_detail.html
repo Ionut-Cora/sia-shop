@@ -21,6 +21,17 @@
     <p>{{ product.description }}</p>
 
     <p>Price: £{{ product.price }}</p>
+    {% if product.has_sizes %}
+        <label for="product_size">Size:</label>
+        <select id="product_size" name="product_size">
+            <option value="">Select a size</option>
+            <option value="XS">XS</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+        </select>
+    {% endif %}
 
     {% if product.rating %}
         <p>Rating: {{ product.rating }}</p>
