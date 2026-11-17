@@ -23,6 +23,17 @@ class Product(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=6, decimal_places=2)
     has_sizes = models.BooleanField(default=False)
+    available_sizes = models.CharField(max_length=100, blank=True)
+
+    def get_available_sizes(self):
+        if self.available_sizes:
+            return [
+                size.strip()
+                for size in self.available_sizes.split(',')
+                if size.strip()
+            ]
+        return []
+
     rating = models.DecimalField(
         max_digits=6,
         decimal_places=2,
