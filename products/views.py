@@ -4,6 +4,10 @@ from .models import Product
 
 def all_products(request):
     products = Product.objects.all()
+    category = request.GET.get('category')
+
+    if category:
+        products = products.filter(category__name=category)
 
     sort = request.GET.get('sort', 'price')
 
@@ -11,6 +15,8 @@ def all_products(request):
         products = products.order_by('-rating')
     elif sort == 'category':
         products = products.order_by('category__name')
+    elif sort == 'name':
+        products = products.order_by('name')
     else:
         products = products.order_by('price')
 
