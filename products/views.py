@@ -1,10 +1,17 @@
-from django.db.models import Q
+from django.db.models import Q, F
 from django.shortcuts import render, get_object_or_404
 from .models import Product
 
 
 def all_products(request):
     products = Product.objects.all()
+    sale_only = request.GET.get('sale')
+
+    if sale_only == 'true':
+        products = products.filter(
+            sale_price__isnull=False,
+            sale_price__lt=F('price')
+        )
 
     query = request.GET.get('q')
 

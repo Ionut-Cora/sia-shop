@@ -22,6 +22,12 @@ class Product(models.Model):
     name = models.CharField(max_length=254)
     description = models.TextField()
     price = models.DecimalField(max_digits=6, decimal_places=2)
+    sale_price = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
     has_sizes = models.BooleanField(default=False)
     available_sizes = models.CharField(max_length=100, blank=True)
 

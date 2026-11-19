@@ -8,6 +8,12 @@
 <body>
     <h1>Our Products</h1>
 
+    <p>
+        <a href="{% url 'products' %}?sale=true">
+            View Sale Items
+        </a>
+    </p>
+
     <form method="GET" action="{% url 'products' %}">
         <label for="search">Search products:</label>
         <input
@@ -52,7 +58,14 @@
             <a href="{% url 'product_detail' product.id %}">
                 <h2>{{ product.name }}</h2>
             </a>
-            <p>£{{ product.price }}</p>
+            {% if product.sale_price and product.sale_price < product.price %}
+                <p>
+                    <del>£{{ product.price }}</del>
+                    <strong>Sale: £{{ product.sale_price }}</strong>
+                </p>
+            {% else %}
+                <p>£{{ product.price }}</p>
+            {% endif %}
         </div>
     {% empty %}
         {% if request.GET.q %}
