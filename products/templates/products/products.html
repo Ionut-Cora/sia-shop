@@ -9,6 +9,17 @@
     <h1>Our Products</h1>
 
     <form method="GET" action="{% url 'products' %}">
+        <label for="search">Search products:</label>
+        <input
+            type="text"
+            id="search"
+            name="q"
+            placeholder="Search by name or description"
+        >
+        <button type="submit">Search</button>
+    </form>
+
+    <form method="GET" action="{% url 'products' %}">
         <label for="category">Category:</label>
         <select name="category" id="category">
             <option value="">All Categories</option>
@@ -44,7 +55,11 @@
             <p>£{{ product.price }}</p>
         </div>
     {% empty %}
-        <p>No products are available yet.</p>
+        {% if request.GET.q %}
+            <p>No products found matching your search.</p>
+        {% else %}
+            <p>No products are available yet.</p>
+        {% endif %}
     {% endfor %}
 </body>
 </html>

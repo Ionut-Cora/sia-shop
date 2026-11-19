@@ -1,9 +1,18 @@
+from django.db.models import Q
 from django.shortcuts import render, get_object_or_404
 from .models import Product
 
 
 def all_products(request):
     products = Product.objects.all()
+
+    query = request.GET.get('q')
+
+    if query:
+        products = products.filter(
+            Q(name__icontains=query) | Q(description__icontains=query)
+        )
+
     category = request.GET.get('category')
 
     if category:
