@@ -110,3 +110,59 @@ def add_to_bag(request, item_id):
         request.session['bag'] = bag
 
     return redirect('view_bag')
+
+def update_bag(request, item_id):
+    """Update the quantity of an item in the shopping bag."""
+
+    if request.method == 'POST':
+        try:
+            quantity = int(request.POST.get('quantity'))
+        except (ValueError, TypeError):
+            return redirect('view_bag')
+
+        if quantity < 1 or quantity > 99:
+            return redirect('view_bag')
+
+        bag = request.session.get('bag', {})
+        item_id = str(item_id)
+
+        if item_id not in bag:
+            return redirect('view_bag')
+
+        if isinstance(bag[item_id], int):
+            bag[item_id] = quantity
+            request.session['bag'] = bag
+        else:
+            size = request.POST.get('size')
+
+            if size in bag[item_id]['items_by_size']:
+                bag[item_id]['items_by_size'][size] = quantity
+                request.session['bag'] = bag
+
+    return redirect('view_bag')
+
+def remove_from_bag(request, item_id):
+    """Remove an item from the shopping bag."""
+
+    if request.method == 'POST':
+        bag = request.session.get('bag', {})
+        item_id = str(item_id)
+
+        if item_id not in bag:
+            return redirect('view_bag')
+
+        if isinstance(bag[item_id], int):
+            del bag[item_id]
+            request.session['bag'] = bag
+        else:
+            size = request.POST.get('size')
+
+            if size in bag[item_id]['items_by_size']:
+                del bag[item_id]['items_by_size'][size]
+
+                if not bag[item_id]['items_by_size']:
+                    del bag[item_id]
+
+                request.session['bag'] = bag
+
+    return redirect('view_bag')
