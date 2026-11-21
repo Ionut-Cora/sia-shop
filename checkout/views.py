@@ -3,14 +3,21 @@ from .forms import OrderForm
 
 
 def checkout(request):
-    """Display the checkout form."""
+    """Display and validate the checkout form."""
 
     bag = request.session.get('bag', {})
 
     if not bag:
         return redirect('view_bag')
 
-    form = OrderForm()
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+
+        if form.is_valid():
+            # Payment processing will be added later.
+            pass
+    else:
+        form = OrderForm()
 
     context = {
         'form': form,

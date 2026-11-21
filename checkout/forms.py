@@ -18,3 +18,15 @@ class OrderForm(forms.ModelForm):
             'postcode',
             'country',
         )
+
+    def clean_full_name(self):
+        """Ensure the customer enters a valid full name."""
+
+        full_name = self.cleaned_data.get('full_name', '').strip()
+
+        if len(full_name) < 2:
+            raise forms.ValidationError(
+                'Please enter a name with at least 2 characters.'
+            )
+
+        return full_name
