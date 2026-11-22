@@ -8,6 +8,39 @@
 <body>
     <h1>Checkout</h1>
 
+    <h2>Order Summary</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Size</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td>{{ item.product_name }}</td>
+                <td>
+                    {% if item.product_size %}
+                        {{ item.product_size }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td>£{{ item.price|floatformat:2 }}</td>
+                <td>£{{ item.subtotal|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p><strong>Order Total: £{{ total|floatformat:2 }}</strong></p>
+
     <h2>Delivery Information</h2>
 
     <form method="POST">
