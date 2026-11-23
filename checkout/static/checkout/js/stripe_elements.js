@@ -21,3 +21,19 @@ const paymentElement = elements.create('payment');
 
 // Mount the Payment Element onto the checkout page.
 paymentElement.mount('#payment-element');
+
+// Get the checkout form.
+const paymentForm = document.getElementById('payment-form');
+
+// Get the checkout submit button.
+const submitButton = document.getElementById('submit-button');
+
+// Get the payment error message container.
+const paymentErrors = document.getElementById('payment-errors');
+
+// Handle checkout form submission.
+paymentForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    paymentErrors.textContent = 'Payment processing is not enabled yet.';
+});

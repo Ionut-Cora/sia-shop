@@ -45,15 +45,18 @@
 
     <h2>Delivery Information</h2>
 
-    <form method="POST">
+    <form method="POST" id="payment-form">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Continue to Payment</button>
+
+        <h2>Payment Details</h2>
+        <div id="payment-element"></div>
+
+        <!-- Display payment error messages -->
+        <div id="payment-errors" role="alert"></div>
+
+        <button type="submit" id="submit-button">Continue to Payment</button>
     </form>
-
-    <h2>Payment Details</h2>
-
-    <div id="payment-element"></div>
 
     <p>
         <a href="{% url 'view_bag' %}">Return to Shopping Bag</a>
