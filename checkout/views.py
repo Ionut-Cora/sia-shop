@@ -1,7 +1,12 @@
-from django.shortcuts import render, redirect
-from .forms import OrderForm
 from decimal import Decimal
+import stripe
+from django.conf import settings
+from django.shortcuts import render, redirect
 from products.models import Product
+from .forms import OrderForm
+
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def checkout(request):
@@ -49,6 +54,44 @@ def checkout(request):
                     'price': price,
                     'subtotal': subtotal,
                 })
+
+        stripe_total = int(total * 100)
+
+    existing_intent_id = request.session.get('payment_intent_id')
+    intent = None
+
+    if existing_intent_id:
+        try:
+            existing_intent = stripe.PaymentIntent.retrieve(
+                existing_intent_id
+            )
+
+            if (
+                existing_intent.status in (
+                    'requires_payment_method',
+                    'requires_confirmation',
+                )
+                and existing_intent.currency == 'gbp'
+            ):
+                if existing_intent.amount != stripe_total:
+                    intent = stripe.PaymentIntent.modify(
+                        existing_intent_id,
+                        amount=stripe_total,
+                    )
+                else:
+                    intent = existing_intent
+
+        except stripe.error.InvalidRequestError:
+            pass
+
+    if intent is None:
+        intent = stripe.PaymentIntent.create(
+            amount=stripe_total,
+            currency='gbp',
+            automatic_payment_methods={'enabled': True},
+        )
+
+    request.session['payment_intent_id'] = intent.id
 
     if request.method == 'POST':
         form = OrderForm(request.POST)
