@@ -106,6 +106,8 @@ def checkout(request):
         'form': form,
         'total': total,
         'order_items': order_items,
+        'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
+        'client_secret': intent.client_secret,
     }
 
     return render(request, 'checkout/checkout.html', context)
