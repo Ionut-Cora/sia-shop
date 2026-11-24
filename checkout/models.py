@@ -24,10 +24,18 @@ class Order(models.Model):
     postcode = models.CharField(max_length=20)
     country = models.CharField(max_length=100)
     date = models.DateTimeField(auto_now_add=True)
-    order_total = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0
+    order_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    stripe_pid = models.CharField(max_length=254, unique=True, null=True, blank=True)
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+    ]
+
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='pending',
     )
 
     def save(self, *args, **kwargs):
