@@ -26,7 +26,11 @@ class OrderAdmin(admin.ModelAdmin):
         'order_number',
         'date',
         'order_total',
+        'payment_status',
+        'stripe_pid',
     )
+
+    list_filter = ('payment_status',)
 
     list_display = (
         'order_number',
@@ -34,6 +38,8 @@ class OrderAdmin(admin.ModelAdmin):
         'email',
         'date',
         'order_total',
+        'payment_status',
+        'stripe_pid',
     )
 
     ordering = ('-date',)
