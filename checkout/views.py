@@ -1,9 +1,12 @@
 from decimal import Decimal
 import stripe
 from django.conf import settings
+from django.db import IntegrityError, transaction
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from products.models import Product
 from .forms import OrderForm
+from .models import Order, OrderLineItem
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -21,7 +24,15 @@ def checkout(request):
     total = Decimal('0.00')
 
     for item_id, item_data in bag.items():
-        product = Product.objects.get(pk=item_id)
+        # Check that the product still exists.
+        try:
+            product = Product.objects.get(pk=item_id)
+
+        except Product.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'A product in your shopping bag is no longer available.',
+            }, status=400)
 
         if product.sale_price is not None and product.sale_price < product.price:
             price = product.sale_price
@@ -55,16 +66,44 @@ def checkout(request):
                     'subtotal': subtotal,
                 })
 
-        stripe_total = int(total * 100)
+    stripe_total = int(total * 100)
+
+    # Prevent checkout with an invalid order total.
+    if stripe_total < 30:
+        return JsonResponse({
+            'success': False,
+            'error': 'The minimum order total is £0.30.',
+        }, status=400)
 
     existing_intent_id = request.session.get('payment_intent_id')
+
+    # Verify the submitted PaymentIntent ID.
+    if request.method == 'POST':
+        submitted_intent_id = request.POST.get('payment_intent_id')
+
+        if not existing_intent_id or submitted_intent_id != existing_intent_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid payment session. Please refresh the checkout page.',
+            }, status=400)
+
     intent = None
 
     if existing_intent_id:
         try:
-            existing_intent = stripe.PaymentIntent.retrieve(
-                existing_intent_id
-            )
+            existing_intent = stripe.PaymentIntent.retrieve(existing_intent_id)
+
+            # Prevent duplicate payments.
+            if existing_intent.status in (
+                'succeeded',
+                'processing',
+                'requires_action',
+                'requires_capture',
+            ):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'A payment has already been completed or is awaiting completion.',
+                }, status=409)
 
             if (
                 existing_intent.status in (
@@ -74,6 +113,22 @@ def checkout(request):
                 and existing_intent.currency == 'gbp'
             ):
                 if existing_intent.amount != stripe_total:
+                    # Prevent amount changes during form submission.
+                    if request.method == 'POST':
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'Order total changed. Please refresh the checkout page.',
+                        }, status=400)
+
+                    # Prevent amount changes after order creation.
+                    if Order.objects.filter(
+                        stripe_pid=existing_intent_id
+                    ).exists():
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'An order already exists for this payment.',
+                        }, status=409)
+
                     intent = stripe.PaymentIntent.modify(
                         existing_intent_id,
                         amount=stripe_total,
@@ -82,23 +137,102 @@ def checkout(request):
                     intent = existing_intent
 
         except stripe.error.InvalidRequestError:
-            pass
+            return JsonResponse({
+                'success': False,
+                'error': 'The payment session could not be verified.',
+            }, status=400)
+
+        except stripe.error.StripeError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Payment service temporarily unavailable. Please try again.',
+            }, status=503)
 
     if intent is None:
-        intent = stripe.PaymentIntent.create(
-            amount=stripe_total,
-            currency='gbp',
-            automatic_payment_methods={'enabled': True},
-        )
+        # Prevent PaymentIntent replacement during form submission.
+        if request.method == 'POST':
+            return JsonResponse({
+                'success': False,
+                'error': 'Payment session expired. Please refresh the checkout page.',
+            }, status=400)
+
+        try:
+            intent = stripe.PaymentIntent.create(
+                amount=stripe_total,
+                currency='gbp',
+                automatic_payment_methods={'enabled': True},
+            )
+
+        except stripe.error.StripeError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Unable to initialise payment. Please try again.',
+            }, status=503)
 
     request.session['payment_intent_id'] = intent.id
 
     if request.method == 'POST':
         form = OrderForm(request.POST)
-
         if form.is_valid():
-            # Payment processing will be added later.
-            pass
+            # Prepare the order without saving it yet.
+            order = form.save(commit=False)
+
+            # Associate the order with the logged-in customer.
+            if request.user.is_authenticated:
+                order.user = request.user
+
+            # Assign the server-calculated order total.
+            order.order_total = total
+
+            # Associate the order with the Stripe PaymentIntent.
+            order.stripe_pid = intent.id
+
+            # Check whether an order already exists for this PaymentIntent.
+            existing_order = Order.objects.filter(
+                stripe_pid=intent.id
+            ).first()
+
+            # Prevent duplicate order creation.
+            if existing_order is not None:
+                form.add_error(
+                    None,
+                    'An order already exists for this payment.'
+                )
+            else:
+                try:
+                    # Save the order and line items together.
+                    with transaction.atomic():
+                        order.save()
+
+                        # Loop through the order items.
+                        for item in order_items:
+                            OrderLineItem.objects.create(
+                                order=order,
+                                product=item['product'],
+                                product_name=item['product_name'],
+                                product_size=item['product_size'],
+                                quantity=item['quantity'],
+                                lineitem_total=item['subtotal'],
+                            )
+
+                except IntegrityError:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Unable to create the order due to a database conflict.',
+                    }, status=409)
+
+                # Return successful order creation response.
+                return JsonResponse({
+                    'success': True,
+                    'order_number': order.order_number,
+                    'payment_status': order.payment_status,
+                })
+
+        # Return checkout validation errors.
+        return JsonResponse({
+            'success': False,
+            'errors': form.errors.get_json_data(),
+        }, status=400)
     else:
         form = OrderForm()
 
@@ -108,6 +242,7 @@ def checkout(request):
         'order_items': order_items,
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
         'client_secret': intent.client_secret,
+        'payment_intent_id': intent.id,
     }
 
     return render(request, 'checkout/checkout.html', context)

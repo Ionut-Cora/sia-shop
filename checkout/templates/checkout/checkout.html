@@ -47,6 +47,11 @@
 
     <form method="POST" id="payment-form">
         {% csrf_token %}
+
+        <!-- Store the Stripe PaymentIntent ID. -->
+        <input type="hidden" name="payment_intent_id"
+            value="{{ payment_intent_id }}">
+
         {{ form.as_p }}
 
         <h2>Payment Details</h2>
