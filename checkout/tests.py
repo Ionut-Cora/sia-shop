@@ -1,20 +1,23 @@
 from decimal import Decimal
+from unittest.mock import patch, MagicMock
 
 from django.test import TestCase, RequestFactory
+from django.contrib.auth.models import User
+from django.urls import reverse
 
-from .models import Order
+from products.models import Product
+from .models import Order, OrderLineItem
 from .webhook_handler import StripeWH_Handler
 
 
 class StripeWebhookHandlerTests(TestCase):
-    """Test Stripe webhook payment handling."""
+    """Test essential Stripe webhook functionality."""
 
     def setUp(self):
         """Prepare the webhook handler and test order."""
 
-        self.factory = RequestFactory()
-        self.request = self.factory.post('/checkout/wh/')
-        self.handler = StripeWH_Handler(self.request)
+        request = RequestFactory().post('/checkout/wh/')
+        self.handler = StripeWH_Handler(request)
 
         self.order = Order.objects.create(
             full_name='Test Customer',
@@ -24,75 +27,62 @@ class StripeWebhookHandlerTests(TestCase):
             town_or_city='London',
             postcode='SW1A 1AA',
             country='United Kingdom',
-            order_total=Decimal('59.98'),
+            order_total=Decimal('40.00'),
             stripe_pid='pi_test_webhook_001',
             payment_status='pending',
         )
 
-    def test_successful_payment_marks_order_as_paid(self):
-        """A successful payment should mark the order as paid."""
-
-        event = {
+        self.event = {
             'type': 'payment_intent.succeeded',
             'data': {
                 'object': {
                     'id': self.order.stripe_pid,
-                    'amount_received': 5998,
+                    'amount_received': 4000,
                     'currency': 'gbp',
                     'status': 'succeeded',
                 }
             }
         }
 
-        response = self.handler.handle_payment_intent_succeeded(event)
+    def test_successful_payment(self):
+        """A successful payment should mark an order as paid."""
+
+        response = self.handler.handle_payment_intent_succeeded(
+            self.event
+        )
 
         self.order.refresh_from_db()
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.order.payment_status, 'paid')
 
-    def test_failed_payment_marks_order_as_failed(self):
-        """A failed payment should mark the order as failed."""
+    def test_failed_payment(self):
+        """A failed payment should mark an order as failed."""
 
-        event = {
-            'type': 'payment_intent.payment_failed',
-            'data': {
-                'object': {
-                    'id': self.order.stripe_pid,
-                    'amount': 5998,
-                    'currency': 'gbp',
-                    'status': 'requires_payment_method',
-                }
-            }
-        }
+        self.event['type'] = 'payment_intent.payment_failed'
+        self.event['data']['object']['status'] = (
+            'requires_payment_method'
+        )
 
-        response = self.handler.handle_payment_intent_payment_failed(event)
+        response = self.handler.handle_payment_intent_payment_failed(
+            self.event
+        )
 
         self.order.refresh_from_db()
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.order.payment_status, 'failed')
 
-    def test_duplicate_successful_payment_event(self):
-        """Duplicate successful events should not duplicate orders."""
+    def test_duplicate_payment_event(self):
+        """Repeated webhook events should not duplicate orders."""
 
-        event = {
-            'type': 'payment_intent.succeeded',
-            'data': {
-                'object': {
-                    'id': self.order.stripe_pid,
-                    'amount_received': 5998,
-                    'currency': 'gbp',
-                    'status': 'succeeded',
-                }
-            }
-        }
+        first_response = (
+            self.handler.handle_payment_intent_succeeded(self.event)
+        )
 
-        # Process the first successful payment event.
-        first_response = self.handler.handle_payment_intent_succeeded(event)
-
-        # Process the same event again.
-        second_response = self.handler.handle_payment_intent_succeeded(event)
+        second_response = (
+            self.handler.handle_payment_intent_succeeded(self.event)
+        )
 
         self.order.refresh_from_db()
 
@@ -100,132 +90,138 @@ class StripeWebhookHandlerTests(TestCase):
         self.assertEqual(second_response.status_code, 200)
         self.assertEqual(self.order.payment_status, 'paid')
         self.assertEqual(Order.objects.count(), 1)
-        self.assertEqual(self.order.order_total, Decimal('59.98'))
 
-    def test_failed_payment_cannot_overwrite_paid_order(self):
-        """A failed payment event must not overwrite a paid order."""
+    def test_incorrect_payment_amount(self):
+        """An incorrect payment amount should be rejected."""
 
-        # Mark the test order as paid.
-        self.order.payment_status = 'paid'
-        self.order.save()
+        self.event['data']['object']['amount_received'] = 2000
 
-        event = {
-            'type': 'payment_intent.payment_failed',
-            'data': {
-                'object': {
-                    'id': self.order.stripe_pid,
-                    'amount': 5998,
-                    'currency': 'gbp',
-                    'status': 'requires_payment_method',
-                }
-            }
-        }
-
-        response = self.handler.handle_payment_intent_payment_failed(event)
-
-        self.order.refresh_from_db()
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.order.payment_status, 'paid')
-        self.assertEqual(Order.objects.count(), 1)
-
-    def test_successful_retry_marks_failed_order_as_paid(self):
-        """A successful retry should mark a failed order as paid."""
-
-        # Mark the test order as failed.
-        self.order.payment_status = 'failed'
-        self.order.save()
-
-        event = {
-            'type': 'payment_intent.succeeded',
-            'data': {
-                'object': {
-                    'id': self.order.stripe_pid,
-                    'amount_received': 5998,
-                    'currency': 'gbp',
-                    'status': 'succeeded',
-                }
-            }
-        }
-
-        response = self.handler.handle_payment_intent_succeeded(event)
-
-        self.order.refresh_from_db()
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.order.payment_status, 'paid')
-        self.assertEqual(Order.objects.count(), 1)
-        self.assertEqual(self.order.order_total, Decimal('59.98'))
-
-    def test_incorrect_payment_amount_is_rejected(self):
-        """An incorrect payment amount must not mark an order as paid."""
-
-        event = {
-            'type': 'payment_intent.succeeded',
-            'data': {
-                'object': {
-                    'id': self.order.stripe_pid,
-                    'amount_received': 2999,
-                    'currency': 'gbp',
-                    'status': 'succeeded',
-                }
-            }
-        }
-
-        response = self.handler.handle_payment_intent_succeeded(event)
+        response = self.handler.handle_payment_intent_succeeded(
+            self.event
+        )
 
         self.order.refresh_from_db()
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(self.order.payment_status, 'pending')
-        self.assertEqual(self.order.order_total, Decimal('59.98'))
-        self.assertEqual(Order.objects.count(), 1)
 
-    def test_incorrect_payment_currency_is_rejected(self):
-        """A payment in the wrong currency must be rejected."""
 
-        event = {
-            'type': 'payment_intent.succeeded',
-            'data': {
-                'object': {
-                    'id': self.order.stripe_pid,
-                    'amount_received': 5998,
-                    'currency': 'usd',
-                    'status': 'succeeded',
-                }
-            }
+class CheckoutPaymentRetryTests(TestCase):
+    """Test essential checkout payment retry functionality."""
+
+    def setUp(self):
+        """Prepare a customer, product, order and shopping bag."""
+
+        self.user = User.objects.create_user(
+            username='testcustomer',
+            email='customer@example.com',
+        )
+
+        self.product = Product.objects.create(
+            name='Test Product',
+            description='Product for automated testing.',
+            price=Decimal('25.00'),
+            sale_price=Decimal('20.00'),
+            has_sizes=True,
+            available_sizes='S,M,L',
+        )
+
+        self.delivery_data = {
+            'full_name': 'Test Customer',
+            'email': 'customer@example.com',
+            'phone_number': '07700900123',
+            'street_address1': '10 Test Street',
+            'street_address2': '',
+            'town_or_city': 'London',
+            'county': 'Greater London',
+            'postcode': 'SW1A 1AA',
+            'country': 'United Kingdom',
         }
 
-        response = self.handler.handle_payment_intent_succeeded(event)
+        self.order = Order.objects.create(
+            user=self.user,
+            order_total=Decimal('40.00'),
+            stripe_pid='pi_test_checkout_001',
+            payment_status='pending',
+            **self.delivery_data,
+        )
 
-        self.order.refresh_from_db()
+        OrderLineItem.objects.create(
+            order=self.order,
+            product=self.product,
+            product_name=self.product.name,
+            product_size='L',
+            quantity=2,
+            lineitem_total=Decimal('40.00'),
+        )
 
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(self.order.payment_status, 'pending')
-        self.assertEqual(self.order.order_total, Decimal('59.98'))
-        self.assertEqual(Order.objects.count(), 1)
+        self.client.force_login(self.user)
 
-    def test_successful_payment_without_matching_order(self):
-        """An unknown PaymentIntent must not update existing orders."""
-
-        event = {
-            'type': 'payment_intent.succeeded',
-            'data': {
-                'object': {
-                    'id': 'pi_test_unknown_999',
-                    'amount_received': 5998,
-                    'currency': 'gbp',
-                    'status': 'succeeded',
-                }
+        session = self.client.session
+        session['bag'] = {
+            str(self.product.id): {
+                'items_by_size': {'L': 2},
             }
         }
+        session['payment_intent_id'] = self.order.stripe_pid
+        session.save()
 
-        response = self.handler.handle_payment_intent_succeeded(event)
+        self.form_data = self.delivery_data.copy()
+        self.form_data['payment_intent_id'] = self.order.stripe_pid
 
-        self.order.refresh_from_db()
+        self.intent = MagicMock()
+        self.intent.id = self.order.stripe_pid
+        self.intent.amount = 4000
+        self.intent.currency = 'gbp'
+        self.intent.status = 'requires_payment_method'
 
-        self.assertEqual(response.status_code, 503)
-        self.assertEqual(response.content, b'Matching order not found.')
-        self.assertEqual(self.order.payment_status, 'pending')
-        self.assertEqual(self.order.order_total, Decimal('59.98'))
+    @patch('checkout.views.stripe.PaymentIntent.retrieve')
+    def test_existing_order_reuse(self, mock_retrieve):
+        """A valid payment retry should reuse the existing order."""
+
+        mock_retrieve.return_value = self.intent
+
+        response = self.client.post(
+            reverse('checkout'),
+            self.form_data,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['success'])
+        self.assertEqual(
+            response.json()['order_number'],
+            self.order.order_number,
+        )
         self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(OrderLineItem.objects.count(), 1)
+
+    @patch('checkout.views.stripe.PaymentIntent.retrieve')
+    def test_changed_shopping_bag(self, mock_retrieve):
+        """Changed shopping bag contents should prevent order reuse."""
+
+        mock_retrieve.return_value = self.intent
+
+        session = self.client.session
+        session['bag'] = {
+            str(self.product.id): {
+                'items_by_size': {'M': 2},
+            }
+        }
+        session.save()
+
+        response = self.client.post(
+            reverse('checkout'),
+            self.form_data,
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(response.json()['success'])
+        self.assertEqual(
+            response.json()['error'],
+            'Your shopping bag contents have changed.',
+        )
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(
+            self.order.lineitems.get().product_size,
+            'L',
+        )

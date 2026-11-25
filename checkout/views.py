@@ -174,6 +174,77 @@ def checkout(request):
     if request.method == 'POST':
         form = OrderForm(request.POST)
         if form.is_valid():
+            # Retrieve any existing order for this PaymentIntent.
+            existing_order = Order.objects.filter(
+                stripe_pid=intent.id
+            ).first()
+
+            # Verify existing order ownership.
+            if existing_order is not None:
+                current_user_id = (
+                    request.user.id
+                    if request.user.is_authenticated
+                    else None
+                )
+
+                if existing_order.user_id != current_user_id:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Unable to access this order.',
+                    }, status=403)
+
+                # Prevent payment retries for paid orders.
+                if existing_order.payment_status == 'paid':
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'This order has already been paid.',
+                    }, status=409)
+
+                # Verify that the existing order total is unchanged.
+                if existing_order.order_total != total:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Your shopping bag total has changed.',
+                    }, status=409)
+
+                # Retrieve the existing order line items.
+                existing_items = list(
+                    existing_order.lineitems.values_list(
+                        'product_id',
+                        'product_name',
+                        'product_size',
+                        'quantity',
+                        'lineitem_total',
+                    )
+                )
+
+                # Prepare the current shopping bag items.
+                current_items = [
+                    (
+                        item['product'].id,
+                        item['product_name'],
+                        item['product_size'],
+                        item['quantity'],
+                        item['subtotal'],
+                    )
+                    for item in order_items
+                ]
+
+                # Verify that the shopping bag contents are unchanged.
+                if sorted(existing_items, key=str) != sorted(current_items, key=str):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Your shopping bag contents have changed.',
+                    }, status=409)
+
+                # Verify that the delivery information is unchanged.
+                for field in form.Meta.fields:
+                    if getattr(existing_order, field) != form.cleaned_data[field]:
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'Your delivery information has changed.',
+                        }, status=409)
+
             # Prepare the order without saving it yet.
             order = form.save(commit=False)
 
@@ -187,17 +258,20 @@ def checkout(request):
             # Associate the order with the Stripe PaymentIntent.
             order.stripe_pid = intent.id
 
-            # Check whether an order already exists for this PaymentIntent.
-            existing_order = Order.objects.filter(
-                stripe_pid=intent.id
-            ).first()
-
-            # Prevent duplicate order creation.
+            # Safely reuse an existing order.
             if existing_order is not None:
-                form.add_error(
-                    None,
-                    'An order already exists for this payment.'
-                )
+                if existing_order.payment_status in ('pending', 'failed'):
+                    return JsonResponse({
+                        'success': True,
+                        'order_number': existing_order.order_number,
+                        'payment_status': existing_order.payment_status,
+                    })
+
+                return JsonResponse({
+                    'success': False,
+                    'error': 'This order cannot be reused.',
+                }, status=409)
+
             else:
                 try:
                     # Save the order and line items together.
