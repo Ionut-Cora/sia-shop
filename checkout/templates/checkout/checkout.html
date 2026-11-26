@@ -49,8 +49,7 @@
         {% csrf_token %}
 
         <!-- Store the Stripe PaymentIntent ID. -->
-        <input type="hidden" name="payment_intent_id"
-            value="{{ payment_intent_id }}">
+        <input type="hidden" name="payment_intent_id" value="{{ payment_intent_id }}">
 
         {{ form.as_p }}
 
@@ -60,7 +59,9 @@
         <!-- Display payment error messages -->
         <div id="payment-errors" role="alert"></div>
 
-        <button type="submit" id="submit-button">Continue to Payment</button>
+        <button type="submit" id="submit-button">Pay Now</button>
+
+        <p>Your payment is securely processed by Stripe.</p>
     </form>
 
     <p>

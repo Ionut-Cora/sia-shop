@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation | Sia Shop</title>
+</head>
+<body>
+
+    {% if order.payment_status == 'paid' %}
+
+        <h1>Thank You for Your Order!</h1>
+
+        <p>Your payment has been received successfully.</p>
+
+    {% elif order.payment_status == 'failed' %}
+
+        <h1>Payment Unsuccessful</h1>
+
+        <p>Your payment could not be completed.</p>
+
+        <p>
+            <a href="{% url 'checkout' %}">
+                Return to Checkout
+            </a>
+        </p>
+
+    {% else %}
+
+        <h1>Payment Confirmation Pending</h1>
+
+        <p>We are waiting for confirmation of your payment.</p>
+
+        <p>Please refresh this page to check your payment status.</p>
+
+    {% endif %}
+
+    <h2>Order Information</h2>
+
+    <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+
+    <p><strong>Order Date:</strong> {{ order.date }}</p>
+
+    <p>
+        <strong>Payment Status:</strong>
+        {{ order.get_payment_status_display }}
+    </p>
+
+    <h2>Order Details</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Size</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in order.lineitems.all %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.product_size|default:"N/A" }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>£{{ item.lineitem_total|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>
+        <strong>Order Total:</strong>
+        £{{ order.order_total|floatformat:2 }}
+    </p>
+
+    <p>
+        <a href="{% url 'products' %}">
+            Continue Shopping
+        </a>
+    </p>
+
+</body>
+</html>

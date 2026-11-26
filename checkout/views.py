@@ -3,7 +3,9 @@ import stripe
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.views.decorators.cache import never_cache
 from products.models import Product
 from .forms import OrderForm
 from .models import Order, OrderLineItem
@@ -12,6 +14,7 @@ from .models import Order, OrderLineItem
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+@never_cache
 def checkout(request):
     """Display and validate the checkout form."""
 
@@ -76,6 +79,25 @@ def checkout(request):
         }, status=400)
 
     existing_intent_id = request.session.get('payment_intent_id')
+    
+    # Verify ownership of any order linked to this payment session.
+    if existing_intent_id:
+        linked_order = Order.objects.filter(
+            stripe_pid=existing_intent_id
+        ).first()
+
+        if linked_order is not None:
+            current_user_id = (
+                request.user.id
+                if request.user.is_authenticated
+                else None
+            )
+
+            if linked_order.user_id != current_user_id:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Unable to access this payment session.',
+                }, status=403)
 
     # Verify the submitted PaymentIntent ID.
     if request.method == 'POST':
@@ -265,6 +287,12 @@ def checkout(request):
                         'success': True,
                         'order_number': existing_order.order_number,
                         'payment_status': existing_order.payment_status,
+                        'success_url': request.build_absolute_uri(
+                            reverse(
+                                'checkout_success',
+                                args=[existing_order.order_number],
+                            )
+                        ),
                     })
 
                 return JsonResponse({
@@ -300,6 +328,12 @@ def checkout(request):
                     'success': True,
                     'order_number': order.order_number,
                     'payment_status': order.payment_status,
+                    'success_url': request.build_absolute_uri(
+                        reverse(
+                            'checkout_success',
+                            args=[order.order_number],
+                        )
+                    ),
                 })
 
         # Return checkout validation errors.
@@ -320,3 +354,45 @@ def checkout(request):
     }
 
     return render(request, 'checkout/checkout.html', context)
+
+
+@never_cache
+def checkout_success(request, order_number):
+    """Display the result of a checkout payment."""
+
+    order = get_object_or_404(
+        Order,
+        order_number=order_number,
+    )
+
+    # Verify that the customer can access this order.
+    if order.user_id is not None:
+        if (
+            not request.user.is_authenticated
+            or request.user.id != order.user_id
+        ):
+            return redirect('view_bag')
+
+    else:
+        if not order.stripe_pid or order.stripe_pid not in (
+            request.session.get('payment_intent_id'),
+            request.session.get('completed_payment_intent_id'),
+        ):
+            return redirect('view_bag')
+
+    # Clear the shopping bag only after confirmed payment.
+    if order.payment_status == 'paid':
+        if request.session.get('payment_intent_id') == order.stripe_pid:
+            request.session['completed_payment_intent_id'] = order.stripe_pid
+            request.session.pop('bag', None)
+            request.session.pop('payment_intent_id', None)
+
+    context = {
+        'order': order,
+    }
+
+    return render(
+        request,
+        'checkout/checkout_success.html',
+        context,
+    )

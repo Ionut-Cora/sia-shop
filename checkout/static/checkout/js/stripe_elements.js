@@ -1,84 +1,102 @@
-// Read the Stripe publishable key from the Django template.
+// Retrieve the Stripe configuration.
 const stripePublicKey = JSON.parse(
     document.getElementById('stripe-public-key').textContent
 );
 
-// Initialize Stripe.
-const stripe = Stripe(stripePublicKey);
-
-// Read the PaymentIntent client secret from the Django template.
 const clientSecret = JSON.parse(
     document.getElementById('client-secret').textContent
 );
 
-// Initialize Stripe Elements using the PaymentIntent client secret.
+// Initialise Stripe and the Payment Element.
+const stripe = Stripe(stripePublicKey);
+
 const elements = stripe.elements({
     clientSecret: clientSecret
 });
 
-// Create the Stripe Payment Element.
 const paymentElement = elements.create('payment');
 
-// Mount the Payment Element onto the checkout page.
 paymentElement.mount('#payment-element');
 
-// Get the checkout form.
+// Retrieve the checkout form elements.
 const paymentForm = document.getElementById('payment-form');
-
-// Get the checkout submit button.
 const submitButton = document.getElementById('submit-button');
-
-// Get the payment error message container.
 const paymentErrors = document.getElementById('payment-errors');
 
 // Handle checkout form submission.
 paymentForm.addEventListener('submit', async function(event) {
     event.preventDefault();
 
-    // Clear previous error messages.
+    // Prevent repeated submissions.
+    if (submitButton.disabled) {
+        return;
+    }
+
     paymentErrors.textContent = '';
-
-    // Disable the submit button.
     submitButton.disabled = true;
-
-    // Collect the checkout form data.
-    const formData = new FormData(paymentForm);
+    submitButton.textContent = 'Processing Payment...';
 
     try {
-        // Send the checkout form data to Django.
+        // Validate the Stripe payment details.
+        const { error: submitError } = await elements.submit();
+
+        if (submitError) {
+            paymentErrors.textContent = submitError.message;
+            return;
+        }
+
+        // Collect the delivery information.
+        const formData = new FormData(paymentForm);
+
+        // Send the checkout information to Django.
         const response = await fetch(window.location.href, {
             method: 'POST',
             body: formData,
         });
 
-        // Read the JSON response.
         const data = await response.json();
 
-        if (response.ok && data.success) {
-            paymentErrors.textContent = 'Pending order created successfully.';
+        // Display server-side validation errors.
+        if (!response.ok || !data.success) {
+            if (data.errors) {
+                const errorMessages = [];
 
-        } else if (data.errors) {
-            // Collect Django form validation errors.
-            const errorMessages = [];
-
-            for (const field in data.errors) {
-                for (const error of data.errors[field]) {
-                    errorMessages.push(error.message);
+                for (const field in data.errors) {
+                    for (const error of data.errors[field]) {
+                        errorMessages.push(error.message);
+                    }
                 }
+
+                paymentErrors.textContent = errorMessages.join(' ');
+            } else {
+                paymentErrors.textContent =
+                    data.error || 'Unable to create your order.';
             }
 
-            // Display the validation errors.
-            paymentErrors.textContent = errorMessages.join(' ');
+            return;
+        }
 
-        } else {
-            paymentErrors.textContent = data.error || 'Order creation failed.';
+        // Confirm the payment using Stripe.
+        const { error } = await stripe.confirmPayment({
+            elements: elements,
+            confirmParams: {
+                return_url: data.success_url,
+            },
+        });
+
+        // Display immediate payment errors.
+        if (error) {
+            paymentErrors.textContent =
+                error.message || 'Your payment could not be completed.';
         }
 
     } catch (error) {
-        paymentErrors.textContent = 'Unable to process checkout. Please try again.';
+        paymentErrors.textContent =
+            'Unable to process checkout. Please try again.';
 
     } finally {
-        // Re-enable the submit button.
+        // Restore the checkout button if payment has not redirected.
         submitButton.disabled = false;
+        submitButton.textContent = 'Pay Now';
     }
 });
