@@ -9,6 +9,7 @@ from django.views.decorators.cache import never_cache
 from products.models import Product
 from .forms import OrderForm
 from .models import Order, OrderLineItem
+from profiles.models import UserProfile
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -342,7 +343,26 @@ def checkout(request):
             'errors': form.errors.get_json_data(),
         }, status=400)
     else:
-        form = OrderForm()
+        # Prepopulate delivery information for registered customers.
+        if request.user.is_authenticated:
+            user_profile, created = UserProfile.objects.get_or_create(
+                user=request.user
+            )
+
+            form = OrderForm(initial={
+                'full_name': user_profile.default_full_name,
+                'email': request.user.email,
+                'phone_number': user_profile.default_phone_number,
+                'street_address1': user_profile.default_street_address1,
+                'street_address2': user_profile.default_street_address2,
+                'town_or_city': user_profile.default_town_or_city,
+                'county': user_profile.default_county,
+                'postcode': user_profile.default_postcode,
+                'country': user_profile.default_country,
+            })
+
+        else:
+            form = OrderForm()
 
     context = {
         'form': form,

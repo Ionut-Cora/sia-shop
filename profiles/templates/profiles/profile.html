@@ -6,16 +6,84 @@
     <title>My Profile | Sia Shop</title>
 </head>
 <body>
+
     <h1>My Profile</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p role="status">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
 
     <h2>Account Information</h2>
 
-    <p>Username: {{ request.user.username }}</p>
-    <p>Email: {{ request.user.email }}</p>
+    <p>
+        <strong>Username:</strong>
+        {{ request.user.username }}
+    </p>
+
+    <p>
+        <strong>Email:</strong>
+        {{ request.user.email }}
+    </p>
+
+    <h2>Default Delivery Information</h2>
+
+    <form method="POST" action="{% url 'profile' %}">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit">Update Profile</button>
+    </form>
 
     <h2>Order History</h2>
-    <p>You have no previous orders yet.</p>
 
-    <a href="{% url 'products' %}">Continue Shopping</a>
+    {% if orders %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Order Number</th>
+                    <th>Date</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'order_history' order.order_number %}">
+                                {{ order.order_number }}
+                            </a>
+                        </td>
+                        <td>{{ order.date|date:"d M Y" }}</td>
+                        <td>£{{ order.order_total|floatformat:2 }}</td>
+                        <td>{{ order.get_payment_status_display }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+
+        <p>You have not placed any orders yet.</p>
+
+    {% endif %}
+
+    <p>
+        <a href="{% url 'products' %}">
+            Continue Shopping
+        </a>
+    </p>
+
+    <p>
+        <a href="{% url 'account_logout' %}">
+            Logout
+        </a>
+    </p>
+
 </body>
 </html>

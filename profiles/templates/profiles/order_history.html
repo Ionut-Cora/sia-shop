@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details | Sia Shop</title>
+</head>
+<body>
+
+    <h1>Order Details</h1>
+
+    <h2>Order Information</h2>
+
+    <p>
+        <strong>Order Number:</strong>
+        {{ order.order_number }}
+    </p>
+
+    <p>
+        <strong>Order Date:</strong>
+        {{ order.date }}
+    </p>
+
+    <p>
+        <strong>Payment Status:</strong>
+        {{ order.get_payment_status_display }}
+    </p>
+
+    <h2>Purchased Products</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Size</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for item in order.lineitems.all %}
+                <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.product_size|default:"N/A" }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>£{{ item.lineitem_total|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>
+        <strong>Order Total:</strong>
+        £{{ order.order_total|floatformat:2 }}
+    </p>
+
+    <h2>Delivery Information</h2>
+
+    <p>{{ order.full_name }}</p>
+    <p>{{ order.email }}</p>
+    <p>{{ order.phone_number }}</p>
+    <p>{{ order.street_address1 }}</p>
+
+    {% if order.street_address2 %}
+        <p>{{ order.street_address2 }}</p>
+    {% endif %}
+
+    <p>{{ order.town_or_city }}</p>
+
+    {% if order.county %}
+        <p>{{ order.county }}</p>
+    {% endif %}
+
+    <p>{{ order.postcode }}</p>
+    <p>{{ order.country }}</p>
+
+    <p>
+        <a href="{% url 'profile' %}">
+            Return to My Profile
+        </a>
+    </p>
+
+</body>
+</html>
