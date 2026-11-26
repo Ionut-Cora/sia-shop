@@ -1,7 +1,13 @@
+import logging
+
 from django.http import HttpResponse
 from django.db import transaction
 
 from .models import Order
+from .emails import send_confirmation_email
+
+
+logger = logging.getLogger(__name__)
 
 
 class StripeWH_Handler:
@@ -12,6 +18,7 @@ class StripeWH_Handler:
 
     def handle_event(self, event):
         """Handle unrecognised Stripe webhook events."""
+
         return HttpResponse(
             content=f'Unhandled webhook received: {event["type"]}',
             status=200,
@@ -23,20 +30,17 @@ class StripeWH_Handler:
         intent = event['data']['object']
         pid = intent['id']
 
-        # Retrieve payment information.
         amount_received = intent['amount_received']
         currency = intent['currency']
         payment_status = intent['status']
 
-        # Validate the payment status.
+        # Validate the payment information.
         if payment_status != 'succeeded':
             return HttpResponse(status=400)
 
-        # Validate the payment currency.
         if currency != 'gbp':
             return HttpResponse(status=400)
 
-        # Validate the received payment amount.
         if amount_received <= 0:
             return HttpResponse(status=400)
 
@@ -50,17 +54,16 @@ class StripeWH_Handler:
                 status=503,
             )
 
-        # Convert the order total into pence.
+        # Verify the received payment amount.
         expected_amount = int(order.order_total * 100)
 
-        # Verify that the received amount matches the order total.
         if amount_received != expected_amount:
             return HttpResponse(
                 content='Payment amount does not match order total.',
                 status=400,
             )
 
-        # Safely update the order payment status.
+        # Safely update the payment status.
         with transaction.atomic():
             updated = Order.objects.filter(
                 pk=order.pk,
@@ -70,18 +73,36 @@ class StripeWH_Handler:
             ).update(payment_status='paid')
 
             if not updated:
-                if Order.objects.filter(
+                already_paid = Order.objects.filter(
                     pk=order.pk,
                     stripe_pid=pid,
                     order_total=order.order_total,
                     payment_status='paid',
-                ).exists():
-                    return HttpResponse(
-                        content='Order already marked as paid.',
-                        status=200,
-                    )
+                ).exists()
 
-                return HttpResponse(status=503)
+                if not already_paid:
+                    return HttpResponse(status=503)
+
+        # Send the order confirmation email.
+        try:
+            email_sent = send_confirmation_email(order.pk)
+
+            if not email_sent:
+                return HttpResponse(
+                    content='Payment confirmed. Email delivery pending.',
+                    status=503,
+                )
+
+        except Exception:
+            logger.exception(
+                'Confirmation email failed for order %s',
+                order.order_number,
+            )
+
+            return HttpResponse(
+                content='Payment confirmed. Email delivery failed.',
+                status=503,
+            )
 
         return HttpResponse(
             content='Order payment confirmed successfully.',
@@ -94,7 +115,7 @@ class StripeWH_Handler:
         intent = event['data']['object']
         pid = intent['id']
 
-        # Safely update pending orders only.
+        # Update pending orders only.
         with transaction.atomic():
             updated = Order.objects.filter(
                 stripe_pid=pid,

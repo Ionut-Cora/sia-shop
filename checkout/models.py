@@ -26,6 +26,8 @@ class Order(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     order_total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     stripe_pid = models.CharField(max_length=254, unique=True, null=True, blank=True)
+    confirmation_email_sent = models.BooleanField(default=False)
+    
     PAYMENT_STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('paid', 'Paid'),

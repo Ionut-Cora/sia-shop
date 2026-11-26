@@ -28,6 +28,7 @@ class OrderAdmin(admin.ModelAdmin):
         'order_total',
         'payment_status',
         'stripe_pid',
+        'confirmation_email_sent',
     )
 
     list_filter = ('payment_status',)
