@@ -1,0 +1,46 @@
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-intro">
+            <h2>Made with passion.</h2>
+            <p>A little something special, just for you.</p>
+        </div>
+
+        <div class="footer-grid">
+            <div class="footer-column">
+                <h3>SIA SHOP</h3>
+                <p>
+                    Beautiful finds, thoughtfully selected
+                    to bring a little warmth to your everyday life.
+                </p>
+            </div>
+
+            <div class="footer-column">
+                <h3>Explore</h3>
+                <a href="{% url 'products' %}">Shop All</a>
+                <a href="{% url 'products' %}?category=clothing">Clothing</a>
+                <a href="{% url 'products' %}?category=accessories">Accessories</a>
+                <a href="{% url 'products' %}?sale=true">Sale</a>
+            </div>
+
+            <div class="footer-column">
+                <h3>My Account</h3>
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'profile' %}">My Profile</a>
+                    <a href="{% url 'profile' %}#order-history">Order History</a>
+                    <a href="{% url 'account_logout' %}">Logout</a>
+                {% else %}
+                    <a href="{% url 'account_login' %}">Login</a>
+                    <a href="{% url 'account_signup' %}">Register</a>
+                {% endif %}
+                <a href="{% url 'view_bag' %}">Shopping Bag</a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>
+                &copy; {% now "Y" %} Sia Shop.
+                All rights reserved.
+            </p>
+        </div>
+    </div>
+</footer>

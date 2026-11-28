@@ -1,0 +1,1529 @@
+/* ==================================================
+   SIA SHOP - GLOBAL STYLES
+   ================================================== */
+
+
+/* ---------- Colour palette and typography ---------- */
+
+:root {
+    --warm-cream: #F7F1E8;
+    --soft-beige: #E8D8C3;
+    --caramel-brown: #C49A6C;
+    --terracotta-orange: #A65E32;
+    --chocolate-brown: #70452D;
+    --pure-white: #FFFFFF;
+    --soft-black: #24211E;
+
+    --heading-font: 'Playfair Display', Georgia, serif;
+    --body-font: 'Lato', Arial, sans-serif;
+
+    --border-radius: 12px;
+    --container-width: 1280px;
+    --transition: 0.2s ease;
+}
+
+
+/* ---------- Global reset ---------- */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--warm-cream);
+    color: var(--soft-black);
+    font-family: var(--body-font);
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+main {
+    flex: 1;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-top: 0;
+    color: var(--chocolate-brown);
+    font-family: var(--heading-font);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+}
+
+h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+h3 {
+    font-size: 1.25rem;
+}
+
+p {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+a {
+    color: var(--chocolate-brown);
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+a:hover {
+    color: var(--terracotta-orange);
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.container {
+    width: min(100% - 48px, var(--container-width));
+    margin-inline: auto;
+}
+
+.page-section {
+    padding-block: 48px;
+}
+
+.section-heading {
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+
+/* ---------- Accessibility ---------- */
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 16px;
+    z-index: 1000;
+    padding: 12px 20px;
+    background-color: var(--chocolate-brown);
+    color: var(--pure-white);
+}
+
+.skip-link:focus {
+    top: 12px;
+    color: var(--pure-white);
+}
+
+:focus-visible {
+    outline: 3px solid var(--chocolate-brown);
+    outline-offset: 4px;
+}
+
+
+/* ---------- Header ---------- */
+
+.site-header {
+    background-color: var(--warm-cream);
+    border-bottom: 1px solid var(--soft-beige);
+}
+
+.header-top {
+    min-height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    border-bottom: 1px solid var(--soft-beige);
+}
+
+.brand-logo {
+    color: var(--chocolate-brown);
+    font-family: var(--heading-font);
+    font-size: 1.9rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    white-space: nowrap;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.header-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    color: var(--chocolate-brown);
+    font-size: 1.2rem;
+}
+
+.header-icon:hover {
+    color: var(--terracotta-orange);
+}
+
+
+/* ---------- Navigation ---------- */
+
+.main-navigation {
+    padding-block: 18px;
+}
+
+.navigation-links {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 32px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.navigation-links a {
+    display: inline-block;
+    padding-block: 6px;
+    color: var(--chocolate-brown);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.navigation-links a:hover {
+    color: var(--terracotta-orange);
+    text-decoration: underline;
+    text-underline-offset: 6px;
+}
+
+.navigation-links .sale-link {
+    color: var(--terracotta-orange);
+}
+
+
+/* ---------- Header search ---------- */
+
+.header-search {
+    display: flex;
+    max-width: 440px;
+    margin: 0 auto 24px;
+}
+
+.header-search input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 16px;
+    border: 1px solid var(--caramel-brown);
+    border-right: 0;
+    border-radius: 8px 0 0 8px;
+    background-color: var(--pure-white);
+}
+
+.header-search button {
+    padding: 12px 20px;
+    border: 1px solid var(--terracotta-orange);
+    border-radius: 0 8px 8px 0;
+    background-color: var(--terracotta-orange);
+    color: var(--pure-white);
+}
+
+.header-search button:hover {
+    background-color: var(--chocolate-brown);
+    border-color: var(--chocolate-brown);
+}
+
+
+/* ---------- Buttons ---------- */
+
+.btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 12px 24px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-weight: 700;
+    text-align: center;
+    transition: background-color var(--transition),
+                color var(--transition);
+}
+
+.btn-primary {
+    background-color: var(--terracotta-orange);
+    color: var(--pure-white);
+}
+
+.btn-primary:hover {
+    background-color: var(--chocolate-brown);
+    color: var(--pure-white);
+}
+
+.btn-secondary {
+    background-color: var(--caramel-brown);
+    color: var(--soft-black);
+}
+
+.btn-secondary:hover {
+    background-color: var(--soft-beige);
+    color: var(--soft-black);
+}
+
+.btn-outline {
+    border-color: var(--chocolate-brown);
+    background-color: transparent;
+    color: var(--chocolate-brown);
+}
+
+.btn-outline:hover {
+    background-color: var(--chocolate-brown);
+    color: var(--pure-white);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* ---------- Forms ---------- */
+
+label {
+    display: inline-block;
+    margin-bottom: 6px;
+    color: var(--chocolate-brown);
+    font-weight: 700;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+select,
+textarea {
+    max-width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--caramel-brown);
+    border-radius: 8px;
+    background-color: var(--pure-white);
+    color: var(--soft-black);
+}
+
+textarea {
+    resize: vertical;
+}
+
+.form-card {
+    padding: 32px;
+    border: 1px solid var(--soft-beige);
+    border-radius: var(--border-radius);
+    background-color: var(--pure-white);
+}
+
+.form-card input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.form-card select,
+.form-card textarea {
+    width: 100%;
+}
+
+.helptext {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.85rem;
+}
+
+.errorlist {
+    padding-left: 20px;
+    color: var(--chocolate-brown);
+    font-weight: 700;
+}
+
+
+/* ---------- Tables ---------- */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--pure-white);
+}
+
+th,
+td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--soft-beige);
+    text-align: left;
+}
+
+th {
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+    font-weight: 700;
+}
+
+
+/* ---------- Django messages ---------- */
+
+.messages-container {
+    padding-top: 20px;
+}
+
+.message {
+    margin-bottom: 12px;
+    padding: 14px 18px;
+    border-left: 4px solid var(--caramel-brown);
+    border-radius: 6px;
+    background-color: var(--soft-beige);
+    color: var(--soft-black);
+}
+
+.message.success {
+    border-left-color: var(--chocolate-brown);
+}
+
+.message.error,
+.message.warning {
+    border-left-color: var(--terracotta-orange);
+}
+
+
+/* ---------- Footer ---------- */
+
+.site-footer {
+    margin-top: 48px;
+    padding-top: 40px;
+    background-color: var(--warm-cream);
+    border-top: 1px solid var(--soft-beige);
+    color: var(--chocolate-brown);
+}
+
+.footer-intro {
+    padding-bottom: 32px;
+    text-align: center;
+    border-bottom: 1px solid var(--soft-beige);
+}
+
+.footer-intro h2 {
+    margin-bottom: 12px;
+}
+
+.footer-intro p {
+    margin-bottom: 0;
+    color: var(--soft-black);
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 48px;
+    padding-block: 40px;
+}
+
+.footer-column h3 {
+    margin-bottom: 18px;
+}
+
+.footer-column p {
+    max-width: 340px;
+}
+
+.footer-column a {
+    display: block;
+    width: fit-content;
+    margin-bottom: 10px;
+}
+
+.footer-column a:hover {
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    padding-block: 20px;
+    border-top: 1px solid var(--soft-beige);
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.footer-bottom p {
+    margin: 0;
+}
+
+/* ==================================================
+   PRODUCT LISTING PAGE
+   ================================================== */
+
+
+/* ---------- Shop introduction ---------- */
+
+.shop-heading {
+    background-color: var(--soft-beige);
+}
+
+.shop-subtitle {
+    color: var(--chocolate-brown);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+
+/* ---------- Product filters ---------- */
+
+.filter-card {
+    background-color: var(--pure-white);
+    border-radius: var(--border-radius);
+}
+
+.filter-card .form-control,
+.filter-card .form-select {
+    min-height: 46px;
+    border-color: var(--caramel-brown);
+}
+
+.filter-card .form-control:focus,
+.filter-card .form-select:focus {
+    border-color: var(--chocolate-brown);
+    box-shadow: 0 0 0 0.2rem rgba(112, 69, 45, 0.15);
+}
+
+
+/* ---------- Product cards ---------- */
+
+.product-card {
+    overflow: hidden;
+    background-color: var(--pure-white);
+    border-radius: var(--border-radius);
+    transition: transform 0.25s ease,
+                box-shadow 0.25s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(112, 69, 45, 0.12) !important;
+}
+
+.product-image-wrapper {
+    overflow: hidden;
+    background-color: var(--soft-beige);
+}
+
+.product-image {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    transition: transform 0.35s ease;
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.04);
+}
+
+.product-placeholder {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+}
+
+.product-placeholder i {
+    color: var(--caramel-brown);
+}
+
+.product-category {
+    color: var(--chocolate-brown);
+    letter-spacing: 1px;
+}
+
+.product-card .card-title a {
+    color: var(--chocolate-brown);
+}
+
+.product-card .card-title a:hover {
+    color: var(--terracotta-orange);
+}
+
+
+/* ---------- Product prices ---------- */
+
+.product-price {
+    color: var(--soft-black);
+    font-size: 1.15rem;
+}
+
+.original-price {
+    color: var(--soft-black);
+    font-size: 0.95rem;
+}
+
+.sale-price {
+    color: var(--terracotta-orange);
+    font-size: 1.15rem;
+}
+
+
+/* ---------- Sale badge ---------- */
+
+.sale-badge {
+    padding: 8px 12px;
+    background-color: var(--terracotta-orange);
+    color: var(--pure-white);
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    border-radius: 5px;
+    pointer-events: none;
+}
+
+
+/* ---------- Product ratings ---------- */
+
+.product-rating {
+    color: var(--soft-black);
+}
+
+.product-rating i {
+    color: var(--terracotta-orange);
+}
+
+
+/* ---------- Empty product results ---------- */
+
+.empty-products {
+    padding-inline: 24px;
+    background-color: var(--soft-beige);
+    border-radius: var(--border-radius);
+}
+
+.empty-products i {
+    color: var(--chocolate-brown);
+}
+
+/* ==================================================
+   PRODUCT DETAILS PAGE
+   ================================================== */
+
+
+/* ---------- Breadcrumb navigation ---------- */
+
+.breadcrumb {
+    --bs-breadcrumb-divider-color: var(--chocolate-brown);
+    --bs-breadcrumb-item-active-color: var(--soft-black);
+    font-size: 0.9rem;
+}
+
+.breadcrumb-item a {
+    color: var(--chocolate-brown);
+}
+
+.breadcrumb-item a:hover {
+    color: var(--terracotta-orange);
+    text-decoration: underline;
+}
+
+
+/* ---------- Product detail image ---------- */
+
+.product-detail-image-wrapper {
+    overflow: hidden;
+    background-color: var(--soft-beige);
+    border-radius: var(--border-radius);
+}
+
+.product-detail-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: contain;
+}
+
+
+/* ---------- Product information card ---------- */
+
+.product-detail-card {
+    background-color: var(--pure-white);
+    border-radius: var(--border-radius);
+}
+
+.product-detail-title {
+    color: var(--chocolate-brown);
+    font-family: var(--heading-font);
+    font-size: clamp(1.8rem, 3vw, 2.75rem);
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------- Product detail pricing ---------- */
+
+.detail-price {
+    color: var(--soft-black);
+    font-size: 1.75rem;
+}
+
+.detail-original-price {
+    color: var(--soft-black);
+    font-size: 1.2rem;
+}
+
+.detail-sale-price {
+    color: var(--terracotta-orange);
+    font-size: 1.75rem;
+}
+
+
+/* ---------- Product description ---------- */
+
+.product-description {
+    color: var(--soft-black);
+    line-height: 1.8;
+}
+
+.product-description h2 {
+    color: var(--chocolate-brown);
+}
+
+.product-description p:last-child {
+    margin-bottom: 0;
+}
+
+.product-divider {
+    border-color: var(--soft-beige);
+    opacity: 1;
+}
+
+
+/* ---------- Product selection form ---------- */
+
+.product-detail-card .form-control,
+.product-detail-card .form-select {
+    width: 100%;
+    min-height: 48px;
+    border-color: var(--caramel-brown);
+    border-radius: 8px;
+}
+
+.product-detail-card .form-control:focus,
+.product-detail-card .form-select:focus {
+    border-color: var(--chocolate-brown);
+    box-shadow: 0 0 0 0.2rem rgba(112, 69, 45, 0.15);
+}
+
+
+/* ---------- Product benefits ---------- */
+
+.product-benefits {
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.product-benefits i {
+    font-size: 1.1rem;
+}
+
+
+/* ---------- Product code ---------- */
+
+.product-sku {
+    color: var(--chocolate-brown);
+    overflow-wrap: anywhere;
+}
+
+/* ==================================================
+   SHOPPING BAG PAGE
+   ================================================== */
+
+
+/* ---------- Shopping bag cards ---------- */
+
+.bag-card,
+.bag-summary-card {
+    background-color: var(--pure-white);
+    border-radius: var(--border-radius);
+}
+
+.bag-item-count {
+    color: var(--chocolate-brown);
+    font-size: 0.9rem;
+}
+
+
+/* ---------- Shopping bag items ---------- */
+
+.bag-item {
+    border-top: 1px solid var(--soft-beige);
+}
+
+.bag-item:last-child {
+    padding-bottom: 0 !important;
+}
+
+.bag-item h3 a {
+    color: var(--chocolate-brown);
+    overflow-wrap: anywhere;
+}
+
+.bag-item h3 a:hover {
+    color: var(--terracotta-orange);
+}
+
+
+/* ---------- Shopping bag product images ---------- */
+
+.bag-product-image {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    background-color: var(--soft-beige);
+    border-radius: 8px;
+}
+
+.bag-image-placeholder {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+    border-radius: 8px;
+}
+
+.bag-image-placeholder i {
+    color: var(--caramel-brown);
+}
+
+
+/* ---------- Quantity controls ---------- */
+
+.bag-quantity-input {
+    width: 80px;
+    min-height: 42px;
+    text-align: center;
+    border-color: var(--caramel-brown);
+}
+
+.bag-quantity-input:focus {
+    border-color: var(--chocolate-brown);
+    box-shadow: 0 0 0 0.2rem rgba(112, 69, 45, 0.15);
+}
+
+.bag-quantity-form .btn {
+    min-height: 42px;
+    padding: 8px 16px;
+}
+
+
+/* ---------- Shopping bag prices ---------- */
+
+.bag-line-total {
+    color: var(--soft-black);
+    font-size: 1.15rem;
+}
+
+.bag-order-total {
+    color: var(--chocolate-brown);
+    font-size: 1.5rem;
+}
+
+
+/* ---------- Remove button ---------- */
+
+.bag-remove-button {
+    min-height: 44px;
+    padding: 8px 12px;
+    background-color: transparent;
+    color: var(--chocolate-brown);
+    border: 1px solid var(--caramel-brown);
+    border-radius: 6px;
+}
+
+.bag-remove-button:hover {
+    background-color: var(--terracotta-orange);
+    border-color: var(--terracotta-orange);
+    color: var(--pure-white);
+}
+
+
+/* ---------- Order summary ---------- */
+
+.bag-summary-card {
+    border-top: 4px solid var(--terracotta-orange) !important;
+}
+
+.bag-payment-info {
+    color: var(--chocolate-brown);
+}
+
+.payment-icons {
+    color: var(--chocolate-brown);
+    font-size: 2rem;
+}
+
+
+/* ---------- Empty shopping bag ---------- */
+
+.empty-bag-card {
+    background-color: var(--soft-beige);
+    border-radius: var(--border-radius);
+}
+
+.empty-bag-icon {
+    color: var(--chocolate-brown);
+}
+
+/* ==================================================
+   CHECKOUT PAGE
+   ================================================== */
+
+
+/* ---------- Checkout cards ---------- */
+
+.checkout-form-card,
+.checkout-payment-card,
+.checkout-summary-card {
+    background-color: var(--pure-white);
+    border-radius: var(--border-radius);
+}
+
+.checkout-summary-card {
+    border-top: 4px solid var(--terracotta-orange) !important;
+}
+
+
+/* ---------- Checkout headings ---------- */
+
+.checkout-form-card h2,
+.checkout-payment-card h2,
+.checkout-summary-card h2 {
+    color: var(--chocolate-brown);
+}
+
+.checkout-form-card h2 i,
+.checkout-payment-card h2 i,
+.checkout-summary-card h2 i {
+    color: var(--terracotta-orange);
+}
+
+.checkout-help-text {
+    color: var(--chocolate-brown);
+}
+
+
+/* ---------- Customer account notice ---------- */
+
+.checkout-account-notice {
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+    border-radius: 8px;
+}
+
+.checkout-account-notice a {
+    text-decoration: underline;
+}
+
+
+/* ---------- Checkout form fields ---------- */
+
+.checkout-form-card .form-label {
+    color: var(--chocolate-brown);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.checkout-form-card .form-control,
+.checkout-form-card .form-select {
+    min-height: 48px;
+    background-color: var(--pure-white);
+    color: var(--soft-black);
+    border: 1px solid var(--caramel-brown);
+    border-radius: 8px;
+}
+
+.checkout-form-card .form-control:focus,
+.checkout-form-card .form-select:focus {
+    border-color: var(--chocolate-brown);
+    box-shadow: 0 0 0 0.2rem rgba(112, 69, 45, 0.15);
+}
+
+.checkout-form-card .asteriskField {
+    color: var(--terracotta-orange);
+}
+
+.checkout-form-card .invalid-feedback {
+    font-size: 0.85rem;
+}
+
+
+/* ---------- Checkout order items ---------- */
+
+.checkout-order-item {
+    border-top: 1px solid var(--soft-beige);
+}
+
+.checkout-order-item h3 {
+    color: var(--chocolate-brown);
+    overflow-wrap: anywhere;
+}
+
+.checkout-item-price {
+    color: var(--soft-black);
+    white-space: nowrap;
+}
+
+.checkout-order-total {
+    color: var(--chocolate-brown);
+    font-size: 1.5rem;
+    white-space: nowrap;
+}
+
+
+/* ---------- Stripe payment element ---------- */
+
+#payment-element {
+    min-height: 100px;
+}
+
+
+/* ---------- Payment error messages ---------- */
+
+.checkout-payment-errors:not(:empty) {
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+    border-left: 4px solid var(--terracotta-orange);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------- Payment button ---------- */
+
+#submit-button {
+    min-height: 52px;
+    font-weight: 700;
+}
+
+#submit-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+
+/* ---------- Payment security notice ---------- */
+
+.checkout-security-notice {
+    color: var(--chocolate-brown);
+}
+
+/* ==================================================
+   ORDER CONFIRMATION PAGE
+   ================================================== */
+
+
+/* ---------- Confirmation icons ---------- */
+
+.confirmation-icon {
+    font-size: 4.5rem;
+    line-height: 1;
+}
+
+.confirmation-success {
+    color: var(--chocolate-brown);
+}
+
+.confirmation-failed {
+    color: var(--terracotta-orange);
+}
+
+.confirmation-pending {
+    color: var(--chocolate-brown);
+}
+
+
+/* ---------- Confirmation cards ---------- */
+
+.confirmation-card {
+    background-color: var(--pure-white);
+    border-radius: var(--border-radius);
+}
+
+.confirmation-card h2,
+.confirmation-card h3 {
+    color: var(--chocolate-brown);
+}
+
+.confirmation-card h2 i {
+    color: var(--terracotta-orange);
+}
+
+.confirmation-card address,
+.confirmation-card p {
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------- Confirmation notification ---------- */
+
+.confirmation-alert {
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+    border: 0;
+    border-left: 4px solid var(--caramel-brown);
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------- Order information ---------- */
+
+.confirmation-label {
+    color: var(--chocolate-brown);
+    font-weight: 700;
+}
+
+.order-reference {
+    color: var(--soft-black);
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------- Payment status badges ---------- */
+
+.order-status-paid,
+.order-status-failed,
+.order-status-pending {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+}
+
+.order-status-paid {
+    background-color: var(--chocolate-brown);
+    color: var(--pure-white);
+}
+
+.order-status-failed {
+    background-color: var(--terracotta-orange);
+    color: var(--pure-white);
+}
+
+.order-status-pending {
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+}
+
+
+/* ---------- Order details table ---------- */
+
+.confirmation-table {
+    --bs-table-bg: var(--pure-white);
+    --bs-table-color: var(--soft-black);
+    --bs-table-border-color: var(--soft-beige);
+}
+
+.confirmation-table thead th {
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.confirmation-table th,
+.confirmation-table td {
+    padding: 14px 16px;
+    vertical-align: middle;
+}
+
+.confirmation-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+
+/* ---------- Order total ---------- */
+
+.confirmation-order-total {
+    color: var(--chocolate-brown);
+    font-size: 1.5rem;
+    white-space: nowrap;
+}
+
+
+/* ---------- Delivery information ---------- */
+
+.confirmation-card address {
+    color: var(--soft-black);
+    line-height: 1.8;
+}
+
+
+/* ---------- Thank you message ---------- */
+
+.confirmation-thank-you {
+    color: var(--chocolate-brown);
+}
+
+.confirmation-thank-you i {
+    color: var(--terracotta-orange);
+}
+
+/* ==================================================
+   CUSTOMER PROFILE PAGE
+   ================================================== */
+
+
+/* ---------- Profile cards ---------- */
+
+.profile-sidebar,
+.profile-card {
+    background-color: var(--pure-white);
+    border-radius: var(--border-radius);
+}
+
+.profile-card h2,
+.profile-card h3 {
+    color: var(--chocolate-brown);
+}
+
+.profile-card h2 i {
+    color: var(--terracotta-orange);
+}
+
+.profile-help-text {
+    color: var(--chocolate-brown);
+}
+
+
+/* ---------- Customer avatar ---------- */
+
+.profile-avatar {
+    width: 90px;
+    height: 90px;
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+    border-radius: 50%;
+    font-size: 2rem;
+}
+
+.profile-email {
+    color: var(--chocolate-brown);
+    overflow-wrap: anywhere;
+}
+
+.profile-sidebar h2 {
+    overflow-wrap: anywhere;
+}
+
+
+/* ---------- Account navigation ---------- */
+
+.profile-navigation .nav-link {
+    padding: 12px 14px;
+    color: var(--chocolate-brown);
+    font-size: 0.9rem;
+    font-weight: 700;
+    border-radius: 8px;
+    transition: background-color 0.2s ease,
+                color 0.2s ease;
+}
+
+.profile-navigation .nav-link i {
+    width: 20px;
+    text-align: center;
+}
+
+.profile-navigation .nav-link:hover,
+.profile-navigation .nav-link:focus-visible {
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+}
+
+
+/* ---------- Account information ---------- */
+
+.profile-information-box {
+    background-color: var(--soft-beige);
+    border-radius: 8px;
+    height: 100%;
+    overflow-wrap: anywhere;
+}
+
+.profile-label {
+    color: var(--chocolate-brown);
+    font-weight: 700;
+}
+
+
+/* ---------- Profile form fields ---------- */
+
+.profile-card .form-label {
+    color: var(--chocolate-brown);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.profile-card .form-control,
+.profile-card .form-select {
+    min-height: 48px;
+    background-color: var(--pure-white);
+    color: var(--soft-black);
+    border: 1px solid var(--caramel-brown);
+    border-radius: 8px;
+}
+
+.profile-card .form-control:focus,
+.profile-card .form-select:focus {
+    border-color: var(--chocolate-brown);
+    box-shadow: 0 0 0 0.2rem rgba(112, 69, 45, 0.15);
+}
+
+.profile-card .asteriskField {
+    color: var(--terracotta-orange);
+}
+
+.profile-card .invalid-feedback {
+    font-size: 0.85rem;
+}
+
+
+/* ---------- Order history table ---------- */
+
+.profile-order-table {
+    --bs-table-bg: var(--pure-white);
+    --bs-table-color: var(--soft-black);
+    --bs-table-border-color: var(--soft-beige);
+}
+
+.profile-order-table thead th {
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.profile-order-table th,
+.profile-order-table td {
+    padding: 14px 12px;
+    vertical-align: middle;
+}
+
+.profile-order-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.profile-order-reference {
+    color: var(--chocolate-brown);
+    font-size: 0.9rem;
+}
+
+.profile-order-reference:hover {
+    color: var(--terracotta-orange);
+    text-decoration: underline;
+}
+
+
+/* ---------- Empty order history ---------- */
+
+.empty-order-history {
+    background-color: var(--soft-beige);
+    color: var(--chocolate-brown);
+    border-radius: var(--border-radius);
+}
+
+.empty-order-history i {
+    color: var(--chocolate-brown);
+}
+
+
+/* ---------- Profile section navigation ---------- */
+
+#account-information,
+#delivery-information,
+#order-history {
+    scroll-margin-top: 24px;
+}
+
+/* ==================================================
+   ORDER HISTORY DETAILS PAGE
+   ================================================== */
+
+
+/* ---------- Order history heading ---------- */
+
+.order-history-section .breadcrumb {
+    margin-bottom: 0;
+}
+
+
+/* ---------- Purchased product links ---------- */
+
+.order-product-link {
+    color: var(--chocolate-brown);
+    transition: color 0.2s ease;
+}
+
+.order-product-link:hover {
+    color: var(--terracotta-orange);
+    text-decoration: underline;
+}
+
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .product-card:hover,
+    .product-card:hover .product-image,
+    .profile-navigation .nav-link,
+    .order-product-link {
+        transform: none;
+    }
+}
+
+
+/* ---------- Responsive layout ---------- */
+
+@media (min-width: 992px) {
+
+    .bag-summary-card {
+        position: sticky;
+        top: 24px;
+    }
+
+    .checkout-summary-card {
+        position: sticky;
+        top: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .container {
+        width: calc(100% - 32px);
+    }
+
+    .header-top {
+        min-height: 76px;
+        gap: 12px;
+    }
+
+    .brand-logo {
+        font-size: 1.5rem;
+        letter-spacing: 2px;
+    }
+
+    .header-actions {
+        gap: 4px;
+    }
+
+    .navigation-links {
+        gap: 20px;
+    }
+
+    .navigation-links a {
+        font-size: 0.8rem;
+    }
+
+    .page-section {
+        padding-block: 32px;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    .footer-column:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .form-card {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .brand-logo {
+        font-size: 1.25rem;
+        letter-spacing: 1px;
+    }
+
+    .header-icon {
+        font-size: 1rem;
+    }
+
+    .navigation-links {
+        gap: 12px;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-column:first-child {
+        grid-column: auto;
+    }
+
+    th,
+    td {
+        padding: 10px 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+    }
+}

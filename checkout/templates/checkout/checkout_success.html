@@ -1,85 +1,251 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Confirmation | Sia Shop</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
 
-    {% if order.payment_status == 'paid' %}
+{% block title %}Order Confirmation | Sia Shop{% endblock %}
 
-        <h1>Thank You for Your Order!</h1>
+{% block content %}
 
-        <p>Your payment has been received successfully.</p>
-
-    {% elif order.payment_status == 'failed' %}
-
-        <h1>Payment Unsuccessful</h1>
-
-        <p>Your payment could not be completed.</p>
-
-        <p>
-            <a href="{% url 'checkout' %}">
+<!-- Order confirmation heading -->
+<section class="shop-heading py-5">
+    <div class="container text-center">
+        {% if order.payment_status == 'paid' %}
+            <div class="confirmation-icon confirmation-success mb-4">
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+            </div>
+            <p class="shop-subtitle text-uppercase mb-2">Order Confirmed</p>
+            <h1 class="mb-3">Thank You for Your Order!</h1>
+            <p class="mb-2">Your payment has been received successfully.</p>
+            <p class="mb-0">Thank you for shopping with Sia Shop.</p>
+        {% elif order.payment_status == 'failed' %}
+            <div class="confirmation-icon confirmation-failed mb-4">
+                <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+            </div>
+            <h1 class="mb-3">Payment Unsuccessful</h1>
+            <p class="mb-4">Your payment could not be completed.</p>
+            <a href="{% url 'checkout' %}" class="btn btn-primary px-4">
                 Return to Checkout
             </a>
-        </p>
+        {% else %}
+            <div class="confirmation-icon confirmation-pending mb-4">
+                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+            </div>
+            <h1 class="mb-3">Payment Confirmation Pending</h1>
+            <p class="mb-2">We are waiting for confirmation of your payment.</p>
+            <p class="mb-4">Please refresh this page to check your payment status.</p>
+            <a href="{{ request.path }}" class="btn btn-primary px-4">
+                <i class="fa-solid fa-arrows-rotate me-2" aria-hidden="true"></i>
+                Refresh Payment Status
+            </a>
+        {% endif %}
+    </div>
+</section>
 
-    {% else %}
+<!-- Order confirmation content -->
+<section class="order-confirmation-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-9">
 
-        <h1>Payment Confirmation Pending</h1>
+                <!-- Confirmation notification -->
+                {% if order.payment_status == 'paid' %}
+                    <div class="alert confirmation-alert mb-4" role="status">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="fa-solid fa-envelope fa-xl" aria-hidden="true"></i>
+                            <div>
+                                <strong>Order Confirmation</strong>
+                                {% if order.confirmation_email_sent %}
+                                    <p class="mb-0 small">
+                                        An order confirmation email has
+                                        been sent to {{ order.email }}.
+                                    </p>
+                                {% else %}
+                                    <p class="mb-0 small">
+                                        Your order is confirmed.
+                                        Your confirmation email is
+                                        awaiting delivery.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
 
-        <p>We are waiting for confirmation of your payment.</p>
+                <!-- Order information -->
+                <div class="card confirmation-card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="h4 mb-4">
+                            <i class="fa-solid fa-receipt me-2" aria-hidden="true"></i>
+                            Order Information
+                        </h2>
+                        <div class="row g-4">
 
-        <p>Please refresh this page to check your payment status.</p>
+                            <!-- Order number -->
+                            <div class="col-12">
+                                <p class="confirmation-label small mb-2">Order Number</p>
+                                <p class="order-reference fw-bold mb-0">
+                                    {{ order.order_number }}
+                                </p>
+                            </div>
 
-    {% endif %}
+                            <!-- Order date -->
+                            <div class="col-12 col-md-6">
+                                <p class="confirmation-label small mb-2">Order Date</p>
+                                <p class="mb-0">
+                                    {{ order.date|date:"d F Y, H:i" }}
+                                </p>
+                            </div>
 
-    <h2>Order Information</h2>
+                            <!-- Payment status -->
+                            <div class="col-12 col-md-6">
+                                <p class="confirmation-label small mb-2">Payment Status</p>
+                                {% if order.payment_status == 'paid' %}
+                                    <span class="badge order-status-paid">
+                                        <i class="fa-solid fa-check me-1" aria-hidden="true"></i>
+                                        {{ order.get_payment_status_display }}
+                                    </span>
+                                {% elif order.payment_status == 'failed' %}
+                                    <span class="badge order-status-failed">
+                                        <i class="fa-solid fa-xmark me-1" aria-hidden="true"></i>
+                                        {{ order.get_payment_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge order-status-pending">
+                                        <i class="fa-regular fa-clock me-1" aria-hidden="true"></i>
+                                        {{ order.get_payment_status_display }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <p><strong>Order Number:</strong> {{ order.order_number }}</p>
+                <!-- Purchased products -->
+                <div class="card confirmation-card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="h4 mb-4">
+                            <i class="fa-solid fa-bag-shopping me-2" aria-hidden="true"></i>
+                            Order Details
+                        </h2>
+                        <div class="table-responsive">
+                            <table class="table confirmation-table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Product</th>
+                                        <th scope="col">Size</th>
+                                        <th scope="col" class="text-center">
+                                            Quantity
+                                        </th>
+                                        <th scope="col" class="text-end">
+                                            Subtotal
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.lineitems.all %}
+                                        <tr>
+                                            <td class="fw-bold">
+                                                {{ item.product_name }}
+                                            </td>
+                                            <td>
+                                                {{ item.product_size|default:"N/A" }}
+                                            </td>
+                                            <td class="text-center">
+                                                {{ item.quantity }}
+                                            </td>
+                                            <td class="text-end text-nowrap">
+                                                £{{ item.lineitem_total|floatformat:2 }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
 
-    <p><strong>Order Date:</strong> {{ order.date }}</p>
+                        <hr class="product-divider my-4">
 
-    <p>
-        <strong>Payment Status:</strong>
-        {{ order.get_payment_status_display }}
-    </p>
+                        <div class="d-flex justify-content-between align-items-center gap-3">
+                            <h3 class="h5 mb-0">Order Total</h3>
+                            <span class="confirmation-order-total fw-bold">
+                                £{{ order.order_total|floatformat:2 }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
-    <h2>Order Details</h2>
+                <!-- Delivery information -->
+                <div class="card confirmation-card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="h4 mb-4">
+                            <i class="fa-solid fa-truck me-2" aria-hidden="true"></i>
+                            Delivery Information
+                        </h2>
+                        <div class="row g-4">
 
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Size</th>
-                <th>Quantity</th>
-                <th>Subtotal</th>
-            </tr>
-        </thead>
+                            <!-- Delivery address -->
+                            <div class="col-12 col-md-6">
+                                <h3 class="h6 mb-3">Delivery Address</h3>
+                                <address class="mb-0">
+                                    <strong>{{ order.full_name }}</strong><br>
+                                    {{ order.street_address1 }}<br>
 
-        <tbody>
-            {% for item in order.lineitems.all %}
-                <tr>
-                    <td>{{ item.product_name }}</td>
-                    <td>{{ item.product_size|default:"N/A" }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>£{{ item.lineitem_total|floatformat:2 }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                                    {% if order.street_address2 %}
+                                        {{ order.street_address2 }}<br>
+                                    {% endif %}
 
-    <p>
-        <strong>Order Total:</strong>
-        £{{ order.order_total|floatformat:2 }}
-    </p>
+                                    {{ order.town_or_city }}<br>
 
-    <p>
-        <a href="{% url 'products' %}">
-            Continue Shopping
-        </a>
-    </p>
+                                    {% if order.county %}
+                                        {{ order.county }}<br>
+                                    {% endif %}
 
-</body>
-</html>
+                                    {{ order.postcode }}<br>
+
+                                    {{ order.country }}
+                                </address>
+                            </div>
+
+                            <!-- Contact details -->
+                            <div class="col-12 col-md-6">
+                                <h3 class="h6 mb-3">Contact Details</h3>
+                                <p class="mb-3">
+                                    <span class="confirmation-label small">Email Address</span>
+                                    <br>
+                                    {{ order.email }}
+                                </p>
+                                <p class="mb-0">
+                                    <span class="confirmation-label small">Phone Number</span>
+                                    <br>
+                                    {{ order.phone_number }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation buttons -->
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mt-5">
+                    <a href="{% url 'products' %}" class="btn btn-primary px-4 py-3">
+                        <i class="fa-solid fa-bag-shopping me-2" aria-hidden="true"></i>
+                        Continue Shopping
+                    </a>
+                    {% if request.user.is_authenticated and order.payment_status == 'paid' %}
+                        <a href="{% url 'profile' %}#order-history" class="btn btn-outline px-4 py-3">
+                            <i class="fa-solid fa-clock-rotate-left me-2" aria-hidden="true"></i>
+                            View Order History
+                        </a>
+                    {% endif %}
+                </div>
+
+                {% if order.payment_status == 'paid' %}
+                    <div class="confirmation-thank-you text-center mt-5">
+                        <i class="fa-regular fa-heart fa-2x mb-3" aria-hidden="true"></i>
+                        <h2 class="h4">Made with passion.</h2>
+                        <p class="mb-0">A little something special, just for you.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

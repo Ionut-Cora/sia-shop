@@ -1,85 +1,229 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Details | Sia Shop</title>
-</head>
-<body>
+{% extends 'base.html' %}
+{% load static %}
 
-    <h1>Order Details</h1>
+{% block title %}Order Details | Sia Shop{% endblock %}
 
-    <h2>Order Information</h2>
+{% block content %}
 
-    <p>
-        <strong>Order Number:</strong>
-        {{ order.order_number }}
-    </p>
+<!-- Order details heading -->
+<section class="shop-heading py-5">
+    <div class="container text-center">
+        <div class="confirmation-icon mb-4">
+            <i class="fa-solid fa-receipt" aria-hidden="true"></i>
+        </div>
+        <p class="shop-subtitle text-uppercase mb-2">Your Purchase History</p>
+        <h1 class="mb-3">Order Details</h1>
+        <p class="mb-0">Revisit the finds you made your own.</p>
+    </div>
+</section>
 
-    <p>
-        <strong>Order Date:</strong>
-        {{ order.date }}
-    </p>
+<!-- Order details content -->
+<section class="order-history-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-9">
 
-    <p>
-        <strong>Payment Status:</strong>
-        {{ order.get_payment_status_display }}
-    </p>
+                <!-- Breadcrumb navigation -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'profile' %}">My Profile</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'profile' %}#order-history">Order History</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            Order Details
+                        </li>
+                    </ol>
+                </nav>
 
-    <h2>Purchased Products</h2>
+                <!-- Order information -->
+                <div class="card confirmation-card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="h4 mb-4">
+                            <i class="fa-solid fa-receipt me-2" aria-hidden="true"></i>
+                            Order Information
+                        </h2>
+                        <div class="row g-4">
 
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Size</th>
-                <th>Quantity</th>
-                <th>Subtotal</th>
-            </tr>
-        </thead>
+                            <!-- Order number -->
+                            <div class="col-12">
+                                <p class="confirmation-label small mb-2">Order Number</p>
+                                <p class="order-reference fw-bold mb-0">
+                                    {{ order.order_number }}
+                                </p>
+                            </div>
 
-        <tbody>
-            {% for item in order.lineitems.all %}
-                <tr>
-                    <td>{{ item.product_name }}</td>
-                    <td>{{ item.product_size|default:"N/A" }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>£{{ item.lineitem_total|floatformat:2 }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                            <!-- Order date -->
+                            <div class="col-12 col-md-6">
+                                <p class="confirmation-label small mb-2">Order Date</p>
+                                <p class="mb-0">
+                                    {{ order.date|date:"d F Y, H:i" }}
+                                </p>
+                            </div>
 
-    <p>
-        <strong>Order Total:</strong>
-        £{{ order.order_total|floatformat:2 }}
-    </p>
+                            <!-- Payment status -->
+                            <div class="col-12 col-md-6">
+                                <p class="confirmation-label small mb-2">Payment Status</p>
+                                {% if order.payment_status == 'paid' %}
+                                    <span class="badge order-status-paid">
+                                        <i class="fa-solid fa-check me-1" aria-hidden="true"></i>
+                                        {{ order.get_payment_status_display }}
+                                    </span>
+                                {% elif order.payment_status == 'failed' %}
+                                    <span class="badge order-status-failed">
+                                        <i class="fa-solid fa-xmark me-1" aria-hidden="true"></i>
+                                        {{ order.get_payment_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge order-status-pending">
+                                        <i class="fa-regular fa-clock me-1" aria-hidden="true"></i>
+                                        {{ order.get_payment_status_display }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    <h2>Delivery Information</h2>
+                <!-- Purchased products -->
+                <div class="card confirmation-card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="h4 mb-4">
+                            <i class="fa-solid fa-bag-shopping me-2" aria-hidden="true"></i>
+                            Purchased Products
+                        </h2>
+                        <div class="table-responsive">
+                            <table class="table confirmation-table align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Product</th>
+                                        <th scope="col">Size</th>
+                                        <th scope="col" class="text-center">Quantity</th>
+                                        <th scope="col" class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.lineitems.all %}
+                                        <tr>
+                                            <td class="fw-bold">
+                                                {% if item.product %}
+                                                    <a href="{% url 'product_detail' item.product.id %}" class="order-product-link">
+                                                        {{ item.product_name }}
+                                                    </a>
+                                                {% else %}
+                                                    {{ item.product_name }}
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {{ item.product_size|default:"N/A" }}
+                                            </td>
+                                            <td class="text-center">
+                                                {{ item.quantity }}
+                                            </td>
+                                            <td class="text-end text-nowrap">
+                                                £{{ item.lineitem_total|floatformat:2 }}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
 
-    <p>{{ order.full_name }}</p>
-    <p>{{ order.email }}</p>
-    <p>{{ order.phone_number }}</p>
-    <p>{{ order.street_address1 }}</p>
+                        <hr class="product-divider my-4">
 
-    {% if order.street_address2 %}
-        <p>{{ order.street_address2 }}</p>
-    {% endif %}
+                        <!-- Order total -->
+                        <div class="d-flex justify-content-between align-items-center gap-3">
+                            <h3 class="h5 mb-0">Order Total</h3>
+                            <span class="confirmation-order-total fw-bold">
+                                £{{ order.order_total|floatformat:2 }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
 
-    <p>{{ order.town_or_city }}</p>
+                <!-- Delivery information -->
+                <div class="card confirmation-card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="h4 mb-3">
+                            <i class="fa-solid fa-truck me-2" aria-hidden="true"></i>
+                            Delivery Information
+                        </h2>
+                        <p class="confirmation-label small mb-4">
+                            Delivery details provided when this order
+                            was placed.
+                        </p>
 
-    {% if order.county %}
-        <p>{{ order.county }}</p>
-    {% endif %}
+                        <div class="row g-4">
 
-    <p>{{ order.postcode }}</p>
-    <p>{{ order.country }}</p>
+                            <!-- Delivery address -->
+                            <div class="col-12 col-md-6">
+                                <h3 class="h6 mb-3">Delivery Address</h3>
+                                <address class="mb-0">
+                                    <strong>{{ order.full_name }}</strong><br>
 
-    <p>
-        <a href="{% url 'profile' %}">
-            Return to My Profile
-        </a>
-    </p>
+                                    {{ order.street_address1 }}<br>
 
-</body>
-</html>
+                                    {% if order.street_address2 %}
+
+                                        {{ order.street_address2 }}<br>
+
+                                    {% endif %}
+
+                                    {{ order.town_or_city }}<br>
+
+                                    {% if order.county %}
+
+                                        {{ order.county }}<br>
+
+                                    {% endif %}
+
+                                    {{ order.postcode }}<br>
+
+                                    {{ order.country }}
+                                </address>
+                            </div>
+
+                            <!-- Contact details -->
+                            <div class="col-12 col-md-6">
+                                <h3 class="h6 mb-3">Contact Details</h3>
+                                <p class="mb-3">
+                                    <span class="confirmation-label small">Email Address</span>
+                                    <br>
+                                    {{ order.email }}
+                                </p>
+                                <p class="mb-0">
+                                    <span class="confirmation-label small">Phone Number</span>
+                                    <br>
+                                    {{ order.phone_number }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation buttons -->
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mt-5">
+                    <a href="{% url 'profile' %}#order-history" class="btn btn-outline px-4 py-3">
+                        <i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>
+                        Return to My Profile
+                    </a>
+                    <a href="{% url 'products' %}" class="btn btn-primary px-4 py-3">
+                        <i class="fa-solid fa-bag-shopping me-2" aria-hidden="true"></i>
+                        Continue Shopping
+                    </a>
+                </div>
+
+                <!-- Brand message -->
+                <div class="confirmation-thank-you text-center mt-5">
+                    <i class="fa-regular fa-heart fa-2x mb-3" aria-hidden="true"></i>
+                    <h2 class="h4">Made with passion.</h2>
+                    <p class="mb-0">Thank you for being part of Sia Shop.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

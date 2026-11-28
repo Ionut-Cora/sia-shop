@@ -1,76 +1,236 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout | Sia Shop</title>
+{% load crispy_forms_tags %}
+
+{% block title %}Checkout | Sia Shop{% endblock %}
+
+{% block extra_js %}
     <script src="https://js.stripe.com/v3/"></script>
-</head>
-<body>
-    <h1>Checkout</h1>
+{% endblock %}
 
-    <h2>Order Summary</h2>
+{% block content %}
 
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Size</th>
-                <th>Quantity</th>
-                <th>Unit Price</th>
-                <th>Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in order_items %}
-            <tr>
-                <td>{{ item.product_name }}</td>
-                <td>
-                    {% if item.product_size %}
-                        {{ item.product_size }}
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </td>
-                <td>{{ item.quantity }}</td>
-                <td>£{{ item.price|floatformat:2 }}</td>
-                <td>£{{ item.subtotal|floatformat:2 }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!-- Checkout heading -->
+<section class="shop-heading py-5">
+    <div class="container text-center">
+        <p class="shop-subtitle text-uppercase mb-2">The Final Step</p>
+        <h1 class="mb-3">Secure Checkout</h1>
+        <p class="mb-0">Your beautiful finds are almost yours.</p>
+    </div>
+</section>
 
-    <p><strong>Order Total: £{{ total|floatformat:2 }}</strong></p>
+<!-- Checkout content -->
+<section class="checkout-section py-5">
+    <div class="container">
+        <div class="row g-4 align-items-start">
 
-    <h2>Delivery Information</h2>
+            <!-- Order summary -->
+            <div class="col-12 col-lg-5 order-lg-2">
+                <aside class="card checkout-summary-card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h2 class="h4 mb-4">
+                            <i class="fa-solid fa-bag-shopping me-2" aria-hidden="true"></i>
+                            Order Summary
+                        </h2>
 
-    <form method="POST" id="payment-form">
-        {% csrf_token %}
+                        <!-- Order items -->
+                        {% for item in order_items %}
+                            <div class="checkout-order-item py-3">
+                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                    <div>
+                                        <h3 class="h6 mb-2">
+                                            {{ item.product_name }}
+                                        </h3>
+                                        {% if item.product_size %}
+                                            <p class="small mb-1">
+                                                Size: {{ item.product_size }}
+                                            </p>
+                                        {% endif %}
+                                        <p class="small mb-1">
+                                            Quantity: {{ item.quantity }}
+                                        </p>
+                                        <p class="small mb-0">
+                                            Unit Price:
+                                            £{{ item.price|floatformat:2 }}
+                                        </p>
+                                    </div>
+                                    <span class="checkout-item-price fw-bold">
+                                        £{{ item.subtotal|floatformat:2 }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
 
-        <!-- Store the Stripe PaymentIntent ID. -->
-        <input type="hidden" name="payment_intent_id" value="{{ payment_intent_id }}">
+                        <!-- Order totals -->
+                        <hr class="product-divider my-4">
+                        <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                            <span>Subtotal</span>
+                            <span class="fw-bold">
+                                £{{ total|floatformat:2 }}
+                            </span>
+                        </div>
 
-        {{ form.as_p }}
+                        <hr class="product-divider my-4">
 
-        <h2>Payment Details</h2>
-        <div id="payment-element"></div>
+                        <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
+                            <h3 class="h5 mb-0">Order Total</h3>
+                            <span class="checkout-order-total fw-bold">
+                                £{{ total|floatformat:2 }}
+                            </span>
+                        </div>
 
-        <!-- Display payment error messages -->
-        <div id="payment-errors" role="alert"></div>
+                        <!-- Return to bag -->
+                        <a href="{% url 'view_bag' %}" class="btn btn-outline w-100">
+                            <i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>
+                            Return to Shopping Bag
+                        </a>
+                    </div>
+                </aside>
+            </div>
 
-        <button type="submit" id="submit-button">Pay Now</button>
+            <!-- Delivery and payment form -->
+            <div class="col-12 col-lg-7 order-lg-1">
+                <form method="POST" id="payment-form">
 
-        <p>Your payment is securely processed by Stripe.</p>
-    </form>
+                    {% csrf_token %}
 
-    <p>
-        <a href="{% url 'view_bag' %}">Return to Shopping Bag</a>
-    </p>
+                    <!-- Stripe PaymentIntent ID -->
+                    <input type="hidden" name="payment_intent_id" value="{{ payment_intent_id }}">
+
+                    <!-- Delivery information -->
+                    <div class="card checkout-form-card border-0 shadow-sm mb-4">
+                        <div class="card-body p-4 p-md-5">
+                            <h2 class="h4 mb-3">
+                                <i class="fa-solid fa-truck me-2" aria-hidden="true"></i>
+                                Delivery Information
+                            </h2>
+                            <p class="checkout-help-text small mb-4">
+                                Please enter your contact details and
+                                delivery address.
+                            </p>
+
+                            <!-- Customer account information -->
+                            {% if not request.user.is_authenticated %}
+                                <div class="checkout-account-notice p-3 mb-4">
+                                    <p class="small mb-2">Already have an account?</p>
+                                    <a href="{% url 'account_login' %}?next={{ request.path|urlencode }}" class="fw-bold">
+                                        Sign in to your account
+                                    </a>
+                                </div>
+                            {% endif %}
+
+                            <!-- Form validation errors -->
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+
+                            <!-- Contact information -->
+                            <h3 class="h6 mb-3">Contact Details</h3>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    {{ form.full_name|as_crispy_field }}
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    {{ form.email|as_crispy_field }}
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    {{ form.phone_number|as_crispy_field }}
+                                </div>
+                            </div>
+
+                            <hr class="product-divider my-4">
+
+                            <!-- Delivery address -->
+                            <h3 class="h6 mb-3">Delivery Address</h3>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    {{ form.street_address1|as_crispy_field }}
+                                </div>
+                                <div class="col-12">
+                                    {{ form.street_address2|as_crispy_field }}
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    {{ form.town_or_city|as_crispy_field }}
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    {{ form.county|as_crispy_field }}
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    {{ form.postcode|as_crispy_field }}
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    {{ form.country|as_crispy_field }}
+                                </div>
+                            </div>
+                            <p class="small checkout-help-text mt-3 mb-0">
+                                Fields marked with an asterisk (*) are required.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Payment details -->
+                    <div class="card checkout-payment-card border-0 shadow-sm">
+                        <div class="card-body p-4 p-md-5">
+                            <h2 class="h4 mb-3">
+                                <i class="fa-solid fa-credit-card me-2" aria-hidden="true"></i>
+                                Payment Details
+                            </h2>
+                            <p class="checkout-help-text small mb-4">
+                                Enter your payment details below to
+                                complete your order.
+                            </p>
+
+                            <!-- Stripe Payment Element -->
+                            <div id="payment-element" class="mb-4"></div>
+
+                            <!-- Payment error messages -->
+                            <div id="payment-errors" class="checkout-payment-errors" role="alert"></div>
+
+                            <hr class="product-divider my-4">
+
+                            <!-- Amount to pay -->
+                            <div class="d-flex justify-content-between align-items-center gap-3 mb-4">
+                                <span class="fw-bold">Amount to Pay</span>
+                                <span class="checkout-order-total fw-bold">
+                                    £{{ total|floatformat:2 }}
+                                </span>
+                            </div>
+
+                            <!-- Submit payment -->
+                            <button type="submit" id="submit-button" class="btn btn-primary w-100 py-3">
+                                <i class="fa-solid fa-lock me-2" aria-hidden="true"></i>
+                                Pay Now
+                            </button>
+
+                            <!-- Secure payment information -->
+                            <div class="checkout-security-notice text-center mt-4">
+                                <p class="small mb-3">
+                                    <i class="fa-solid fa-shield-halved me-1" aria-hidden="true"></i>
+                                    Your payment is securely processed by Stripe.
+                                </p>
+                                <div class="payment-icons d-flex justify-content-center align-items-center gap-3">
+                                    <i class="fa-brands fa-cc-visa" aria-hidden="true"></i>
+                                    <i class="fa-brands fa-cc-mastercard" aria-hidden="true"></i>
+                                    <i class="fa-brands fa-cc-stripe" aria-hidden="true"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block postloadjs %}
 
     {{ stripe_public_key|json_script:"stripe-public-key" }}
     {{ client_secret|json_script:"client-secret" }}
 
     <script src="{% static 'checkout/js/stripe_elements.js' %}"></script>
-</body>
-</html>
+
+{% endblock %}

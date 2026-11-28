@@ -10,8 +10,58 @@ const clientSecret = JSON.parse(
 // Initialise Stripe and the Payment Element.
 const stripe = Stripe(stripePublicKey);
 
+// Match the Stripe Payment Element to the Sia Shop brand.
+const appearance = {
+    theme: 'stripe',
+
+    variables: {
+        colorPrimary: '#A65E32',
+        colorBackground: '#FFFFFF',
+        colorText: '#24211E',
+        colorDanger: '#A65E32',
+        colorTextSecondary: '#70452D',
+        fontFamily: 'Arial, sans-serif',
+        fontSizeBase: '16px',
+        spacingUnit: '4px',
+        borderRadius: '8px'
+    },
+
+    rules: {
+        '.Input': {
+            border: '1px solid #C49A6C',
+            boxShadow: 'none',
+            padding: '12px'
+        },
+
+        '.Input:focus': {
+            border: '1px solid #70452D',
+            boxShadow: '0 0 0 3px rgba(112, 69, 45, 0.15)'
+        },
+
+        '.Label': {
+            color: '#70452D',
+            fontWeight: '600'
+        },
+
+        '.Tab': {
+            border: '1px solid #E8D8C3',
+            boxShadow: 'none'
+        },
+
+        '.Tab:hover': {
+            color: '#A65E32'
+        },
+
+        '.Tab--selected': {
+            borderColor: '#A65E32',
+            boxShadow: 'none'
+        }
+    }
+};
+
 const elements = stripe.elements({
-    clientSecret: clientSecret
+    clientSecret: clientSecret,
+    appearance: appearance
 });
 
 const paymentElement = elements.create('payment');

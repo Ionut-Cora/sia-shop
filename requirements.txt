@@ -2,10 +2,12 @@
 certifi==2026.7.22
 cffi==2.1.1
 charset-normalizer==3.5.2
+crispy-bootstrap5==0.7
 cryptography==50.0.2
 defusedxml==0.7.1
 Django==3.2.25
 django-allauth==0.50.0
+django-crispy-forms==1.14.0
 idna==3.20
 oauthlib==4.0.0
 pillow==13.0.0
